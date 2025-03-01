@@ -16,7 +16,7 @@ Project Nexus is an advanced software development initiative aimed at showcasing
 - **TypeScript**: Type safety and maintainability.
 - **Victory Native**: Charting library for visualizing poll results.
 - **NativeWind**: Tailwind CSS for styling in React Native.
-- **Firebase/Firestore or Supabase (Optional for real-time database updates).**
+- **Firebase/Firestore**: Real-time database for dynamic poll updates.
 
 ## 📋 Setup & Implementation Steps
 
@@ -38,6 +38,7 @@ Choose the **TypeScript** template when prompted.
 npm install react-redux @reduxjs/toolkit
 npm install nativewind tailwindcss
 npm install victory-native react-native-svg
+npm install firebase
 ```
 
 ### **4. Configure NativeWind**
@@ -113,12 +114,38 @@ export const { addPoll, votePoll } = pollSlice.actions;
 export default pollSlice.reducer;
 ```
 
-### **7. Implement Poll Creation and Voting**
+### **7. Firebase Setup (Critical for Real-Time)**
+1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com).
+2. Enable Firestore Database (Test Mode).
+3. Add Firebase configuration to `.env`:
+```ini
+EXPO_PUBLIC_FIREBASE_API_KEY=your_key
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your_domain
+EXPO_PUBLIC_FIREBASE_PROJECT_ID=your_id
+```
+4. Initialize Firebase in your project (`firebaseConfig.ts`):
+```ts
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+
+const firebaseConfig = {
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+};
+
+const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
+export const auth = getAuth(app);
+```
+
+### **8. Implement Poll Creation and Voting**
 - **Poll Creation:** A screen where users can create a poll.
 - **Voting Screen:** Users can vote on polls.
 - **Live Result Screen:** Display real-time poll results with charts.
 
-### **8. Use Charts for Visualization**
+### **9. Use Charts for Visualization**
 Example of integrating a chart using `VictoryPie`:
 ```tsx
 import { VictoryPie } from 'victory-native';
@@ -129,7 +156,7 @@ import { VictoryPie } from 'victory-native';
 />
 ```
 
-### **9. Run the App**
+### **10. Run the App**
 ```bash
 npx expo start
 ```
