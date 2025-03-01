@@ -35,11 +35,12 @@ Choose the **TypeScript** template when prompted.
 npm install nativewind tailwindcss@^3.4.17 react-native-reanimated@3 16.2 react-native-safe-area-context
 npm install react-redux @reduxjs/toolkit
 npm install victory-native react-native-svg
+npm install expo-constants
 npm install firebase
 ```
 
 ### **4. Set up Tailwind**
-Run npx ```tailwindcss init``` to create a tailwind.config.js file
+Run ```npx tailwindcss init``` to create a tailwind.config.js file
 ```ts
 /** @type {import('tailwindcss').Config} */
 module.exports = {
