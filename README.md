@@ -25,19 +25,76 @@ Ensure you have Node.js installed.
 
 ### **2. Initialize the Project**
 ```bash
-npx create-expo-stack@latest project-nexus-poll-system --nativewind 
+npx create-expo-app@latest project-nexus-poll-system
 cd project-nexus-poll-system
 ```
 Choose the **TypeScript** template when prompted.
 
 ### **3. Install Dependencies**
 ```bash
+npm install nativewind tailwindcss@^3.4.17 react-native-reanimated@3 16.2 react-native-safe-area-context
 npm install react-redux @reduxjs/toolkit
 npm install victory-native react-native-svg
 npm install firebase
 ```
 
-### **4. Set Up Redux Store**
+### **4. Set up Tailwind**
+Run npx ```tailwindcss init``` to create a tailwind.config.js file
+```ts
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  // NOTE: Update this to include the paths to all of your component files.
+  content: ["./app/**/*.{js,jsx,ts,tsx}"],
+  presets: [require("nativewind/preset")],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+```
+global.css
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+babel.config.js
+```js
+module.exports = function (api) {
+  api.cache(true);
+  return {
+    presets: [
+      ["babel-preset-expo", { jsxImportSource: "nativewind" }],
+      "nativewind/babel",
+    ],
+  };
+};
+```
+metro.config.js
+```js
+const { getDefaultConfig } = require("expo/metro-config");
+const { withNativeWind } = require('nativewind/metro');
+
+const config = getDefaultConfig(__dirname)
+
+module.exports = withNativeWind(config, { input: './global.css' })
+```
+Modify your app.json
+Switch the bundler to use the Metro bundler
+```json
+{
+  "expo": {
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
+```
+app.d.ts
+```ts
+/// <reference types="nativewind/types" />
+```
+### **5. Set Up Redux Store**
 Create a `store.ts` file:
 ```ts
 import { configureStore } from '@reduxjs/toolkit';
@@ -52,7 +109,7 @@ export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 ```
 
-### **5. Create a Redux Slice for Poll Management**
+### **6. Create a Redux Slice for Poll Management**
 Create `slices/pollSlice.ts`:
 ```ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
@@ -94,7 +151,7 @@ export const { addPoll, votePoll } = pollSlice.actions;
 export default pollSlice.reducer;
 ```
 
-### **6. Firebase Setup (Critical for Real-Time)**
+### **7. Firebase Setup (Critical for Real-Time)**
 1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com).
 2. Enable Firestore Database (Test Mode).
 3. Add Firebase configuration to `.env`:
@@ -120,12 +177,12 @@ export const db = getFirestore(app);
 export const auth = getAuth(app);
 ```
 
-### **7. Implement Poll Creation and Voting**
+### **8. Implement Poll Creation and Voting**
 - **Poll Creation:** A screen where users can create a poll.
 - **Voting Screen:** Users can vote on polls.
 - **Live Result Screen:** Display real-time poll results with charts.
 
-### **8. Use Charts for Visualization**
+### **9. Use Charts for Visualization**
 Example of integrating a chart using `VictoryPie`:
 ```tsx
 import { VictoryPie } from 'victory-native';
@@ -136,7 +193,7 @@ import { VictoryPie } from 'victory-native';
 />
 ```
 
-### **9. Run the App**
+### **10. Run the App**
 ```bash
 npx expo start
 ```
