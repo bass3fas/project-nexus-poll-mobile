@@ -10,7 +10,7 @@ Project Nexus is an advanced software development initiative aimed at showcasing
 - **Real-time Updates**: Ensure seamless user interaction and immediate display of poll results.
 - **User-Friendly Interface**: Provide an intuitive and engaging experience.
 
-## 🛠 Technologies Used
+## 🦭 Technologies Used
 - **React Native (Expo)**: Component-based UI development.
 - **Redux Toolkit**: State management.
 - **TypeScript**: Type safety and maintainability.
@@ -21,14 +21,11 @@ Project Nexus is an advanced software development initiative aimed at showcasing
 ## 📋 Setup & Implementation Steps
 
 ### **1. Install Prerequisites**
-Ensure you have Node.js and Expo CLI installed:
-```bash
-npm install -g expo-cli
-```
+Ensure you have Node.js installed.
 
 ### **2. Initialize the Project**
 ```bash
-expo init project-nexus-poll-system
+npx create-expo-app@latest project-nexus-poll-system
 cd project-nexus-poll-system
 ```
 Choose the **TypeScript** template when prompted.
@@ -124,6 +121,11 @@ EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your_domain
 EXPO_PUBLIC_FIREBASE_PROJECT_ID=your_id
 ```
 4. Initialize Firebase in your project (`firebaseConfig.ts`):
+```
+npm install firebase
+
+
+```
 ```ts
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
@@ -161,7 +163,7 @@ import { VictoryPie } from 'victory-native';
 npx expo start
 ```
 
-## 🔄 Git Commit Workflow
+## 📀 Git Commit Workflow
 | Commit Type  | Purpose |
 |-------------|---------|
 | `feat:`     | New feature development |
