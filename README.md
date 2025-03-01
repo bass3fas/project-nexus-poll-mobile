@@ -25,7 +25,7 @@ Ensure you have Node.js installed.
 
 ### **2. Initialize the Project**
 ```bash
-npx create-expo-app@latest project-nexus-poll-system
+npx create-expo-stack@latest project-nexus-poll-system --nativewind 
 cd project-nexus-poll-system
 ```
 Choose the **TypeScript** template when prompted.
@@ -33,28 +33,11 @@ Choose the **TypeScript** template when prompted.
 ### **3. Install Dependencies**
 ```bash
 npm install react-redux @reduxjs/toolkit
-npm install nativewind tailwindcss
 npm install victory-native react-native-svg
 npm install firebase
 ```
 
-### **4. Configure NativeWind**
-Initialize Tailwind CSS for styling:
-```bash
-npx tailwindcss init
-```
-Modify `tailwind.config.js` to support React Native:
-```js
-module.exports = {
-  content: ["./App.{js,jsx,ts,tsx}", "./components/**/*.{js,jsx,ts,tsx}"],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-};
-```
-
-### **5. Set Up Redux Store**
+### **4. Set Up Redux Store**
 Create a `store.ts` file:
 ```ts
 import { configureStore } from '@reduxjs/toolkit';
@@ -69,7 +52,7 @@ export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 ```
 
-### **6. Create a Redux Slice for Poll Management**
+### **5. Create a Redux Slice for Poll Management**
 Create `slices/pollSlice.ts`:
 ```ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
@@ -111,7 +94,7 @@ export const { addPoll, votePoll } = pollSlice.actions;
 export default pollSlice.reducer;
 ```
 
-### **7. Firebase Setup (Critical for Real-Time)**
+### **6. Firebase Setup (Critical for Real-Time)**
 1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com).
 2. Enable Firestore Database (Test Mode).
 3. Add Firebase configuration to `.env`:
@@ -121,11 +104,6 @@ EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your_domain
 EXPO_PUBLIC_FIREBASE_PROJECT_ID=your_id
 ```
 4. Initialize Firebase in your project (`firebaseConfig.ts`):
-```
-npm install firebase
-
-
-```
 ```ts
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
@@ -142,12 +120,12 @@ export const db = getFirestore(app);
 export const auth = getAuth(app);
 ```
 
-### **8. Implement Poll Creation and Voting**
+### **7. Implement Poll Creation and Voting**
 - **Poll Creation:** A screen where users can create a poll.
 - **Voting Screen:** Users can vote on polls.
 - **Live Result Screen:** Display real-time poll results with charts.
 
-### **9. Use Charts for Visualization**
+### **8. Use Charts for Visualization**
 Example of integrating a chart using `VictoryPie`:
 ```tsx
 import { VictoryPie } from 'victory-native';
@@ -158,7 +136,7 @@ import { VictoryPie } from 'victory-native';
 />
 ```
 
-### **10. Run the App**
+### **9. Run the App**
 ```bash
 npx expo start
 ```
