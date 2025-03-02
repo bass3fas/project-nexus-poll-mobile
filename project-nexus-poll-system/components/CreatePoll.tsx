@@ -16,7 +16,7 @@ const pollSchema = z.object({
 });
 
 export default function CreatePoll() {
-  const { control, handleSubmit, formState: { errors }, setValue } = useForm({
+  const { control, handleSubmit, formState: { errors }, setValue, watch } = useForm({
     resolver: zodResolver(pollSchema),
     defaultValues: {
       question: '',
@@ -26,12 +26,14 @@ export default function CreatePoll() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const options = watch('options');
+
   const handleAddOption = () => {
-    setValue('options', [...control._formValues.options, '']);
+    setValue('options', [...options, '']);
   };
 
   const handleRemoveOption = (index: number) => {
-    const newOptions = control._formValues.options.filter((_, i) => i !== index);
+    const newOptions = options.filter((_, i) => i !== index);
     setValue('options', newOptions);
   };
 
@@ -80,7 +82,7 @@ export default function CreatePoll() {
 
       <View className="mb-4">
         <Text className="text-lg font-semibold mb-4 text-gray-700">Options:</Text>
-        {control._formValues.options.map((_, index) => (
+        {options.map((_, index) => (
           <View key={index} className="flex-row items-center mb-3">
             <Controller
               control={control}
@@ -101,7 +103,7 @@ export default function CreatePoll() {
                 </View>
               )}
             />
-            {control._formValues.options.length > 2 && (
+            {options.length > 2 && (
               <TouchableOpacity
                 onPress={() => handleRemoveOption(index)}
                 className="p-2 bg-red-100 rounded-lg"
