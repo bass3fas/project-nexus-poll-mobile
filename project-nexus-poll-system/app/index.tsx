@@ -11,8 +11,8 @@ export default function WelcomeScreen() {
         
         <View className="flex-row justify-between w-full px-4">
           <Link href="/(tabs)/create" asChild>
-            <TouchableOpacity className="bg-purple-600 rounded-full mx-2 py-2 px-4">
-              <Text className="text-white text-center">Create a Poll</Text>
+            <TouchableOpacity className="border border-purple-600 rounded-full mx-2 py-2 px-4">
+              <Text className="text-purple-600 text-center">Create a Poll</Text>
             </TouchableOpacity>
           </Link>
           
