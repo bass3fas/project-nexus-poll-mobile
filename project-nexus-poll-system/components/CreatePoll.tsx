@@ -43,26 +43,34 @@ export default function CreatePoll() {
   const onSubmit = async (data) => {
     try {
       setIsSubmitting(true);
-      await addDoc(collection(db, 'polls'), {
+  
+      const pollData = {
         question: data.question,
-        options: data.options.map((text, index) => ({
-          id: `opt${index}`,
-          text,
-          votes: 0
-        })),
+        options: data.options.reduce((acc, text, index) => {
+          const optionId = `opt${index}`;
+          acc[optionId] = { text, votes: 0 };
+          return acc;
+        }, {}),  // ✅ Convert array to object
         createdAt: new Date(),
         totalVotes: 0
-      });
+      };
+  
+      await addDoc(collection(db, 'polls'), pollData);
+  
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2000);
       setValue('question', '');
       setValue('options', ['', '']);
+  
+      console.log('✅ Poll created successfully:', pollData);
     } catch (error) {
+      console.error('❌ Error creating poll:', error);
       Alert.alert('Error', 'Failed to create poll');
     } finally {
       setIsSubmitting(false);
     }
   };
+  
 
   return (
     <SafeAreaProvider>

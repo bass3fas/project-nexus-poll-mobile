@@ -1,3 +1,4 @@
+import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Alert, ImageBackground } from 'react-native';
 import { useEffect, useState } from 'react';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, increment } from 'firebase/firestore';
@@ -14,7 +15,7 @@ export default function VoteScreen() {
 
   useEffect(() => {
     const pollsQuery = query(collection(db, 'polls'), orderBy('createdAt', 'desc'));
-    
+
     const unsubscribe = onSnapshot(pollsQuery, (snapshot) => {
       const pollsData = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -31,7 +32,7 @@ export default function VoteScreen() {
     try {
       setVotingInProgress(true);
       const pollRef = doc(db, 'polls', pollId);
-      
+
       await updateDoc(pollRef, {
         [`options.${optionId}.votes`]: increment(1),
         totalVotes: increment(1)
@@ -75,16 +76,16 @@ export default function VoteScreen() {
           polls.map(poll => (
             <View key={poll.id} className="mb-6 bg-white rounded-xl p-4 shadow-sm">
               <Text className="text-lg font-semibold mb-4 text-gray-800">{poll.question}</Text>
-              
+
               <View className="mb-4">
                 <Text className="text-sm text-gray-500 mb-2">
                   {poll.totalVotes} total votes
                 </Text>
-                
-                {poll.options.map(option => (
+
+                {Object.entries(poll.options).map(([optionId, option]) => (
                   <TouchableOpacity
-                    key={option.id}
-                    onPress={() => handleVote(poll.id, option.id)}
+                    key={optionId}
+                    onPress={() => handleVote(poll.id, optionId)}
                     disabled={votingInProgress}
                     className="mb-3"
                   >
@@ -97,7 +98,7 @@ export default function VoteScreen() {
                           {calculatePercentage(option.votes, poll.totalVotes)}%
                         </Text>
                       </View>
-                      
+
                       <View className="h-2 bg-purple-100 rounded-full overflow-hidden">
                         <View
                           className="h-full bg-purple-500"
