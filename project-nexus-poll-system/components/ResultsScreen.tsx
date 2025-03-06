@@ -5,12 +5,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store/store';
 import { fetchPolls } from '../store/slices/pollSlice';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 
 const ResultsScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { polls, status, error } = useSelector((state: RootState) => state.poll);
-  const navigation = useNavigation();
   const route = useRoute();
   const pollId = route.params?.pollId;
   const [selectedPoll, setSelectedPoll] = React.useState<string | null>(pollId || null);
@@ -24,6 +23,12 @@ const ResultsScreen = () => {
       Alert.alert('Error', error);
     }
   }, [error]);
+
+  useEffect(() => {
+    if (pollId) {
+      setSelectedPoll(pollId);
+    }
+  }, [pollId]);
 
   const calculatePercentage = (votes: number, total: number) => {
     return total > 0 ? Math.round((votes / total) * 100) : 0;
