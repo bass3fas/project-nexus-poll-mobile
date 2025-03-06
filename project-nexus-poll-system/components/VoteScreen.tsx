@@ -107,7 +107,7 @@ export default function VoteScreen() {
               </View>
 
               <TouchableOpacity
-                onPress={() => navigation.navigate('Results', { pollId: poll.id })}
+                onPress={() => navigation.navigate('results', { pollId: poll.id })}
                 className="flex-row items-center justify-end"
               >
                 <Text className="text-purple-600 mr-2">View Details</Text>

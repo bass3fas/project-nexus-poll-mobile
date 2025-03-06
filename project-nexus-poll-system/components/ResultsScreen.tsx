@@ -1,18 +1,19 @@
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, Alert, StyleSheet, TouchableOpacity } from 'react-native';
 import { VictoryPie } from 'victory';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store/store';
-import { fetchPolls, voteOnPoll } from '../store/slices/pollSlice';
+import { fetchPolls } from '../store/slices/pollSlice';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 const ResultsScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { polls, status, error } = useSelector((state: RootState) => state.poll);
   const navigation = useNavigation();
-  const [selectedPoll, setSelectedPoll] = React.useState<string | null>(null);
+  const route = useRoute();
+  const pollId = route.params?.pollId;
+  const [selectedPoll, setSelectedPoll] = React.useState<string | null>(pollId || null);
 
   useEffect(() => {
     dispatch(fetchPolls());
@@ -23,15 +24,6 @@ const ResultsScreen = () => {
       Alert.alert('Error', error);
     }
   }, [error]);
-
-  const handleVote = async (pollId: string, optionId: string) => {
-    try {
-      await dispatch(voteOnPoll({ pollId, optionId })).unwrap();
-      Alert.alert('Success', 'Your vote has been recorded!');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to submit vote. Please try again.');
-    }
-  };
 
   const calculatePercentage = (votes: number, total: number) => {
     return total > 0 ? Math.round((votes / total) * 100) : 0;
@@ -47,7 +39,7 @@ const ResultsScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Text style={styles.title}>Active Polls</Text>
+      <Text style={styles.title}>Poll Results</Text>
 
       {polls.map((poll) => (
         <View key={poll.id} style={styles.pollContainer}>
@@ -87,12 +79,7 @@ const ResultsScreen = () => {
 
               <View style={styles.optionsContainer}>
                 {Object.entries(poll.options).map(([optionId, option]) => (
-                  <TouchableOpacity
-                    key={optionId}
-                    onPress={() => handleVote(poll.id, optionId)}
-                    disabled={status === 'loading'}
-                    style={styles.optionButton}
-                  >
+                  <View key={optionId} style={styles.optionButton}>
                     <View style={styles.optionContent}>
                       <Text style={styles.optionText}>{option.text}</Text>
                       <Text style={styles.voteCount}>{calculatePercentage(option.votes, poll.totalVotes)}%</Text>
@@ -105,17 +92,9 @@ const ResultsScreen = () => {
                         ]}
                       />
                     </View>
-                  </TouchableOpacity>
+                  </View>
                 ))}
               </View>
-
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Results', { pollId: poll.id })}
-                style={styles.detailsButton}
-              >
-                <Text style={styles.detailsText}>Detailed Analysis</Text>
-                <MaterialIcons name="arrow-forward" size={20} color="#9333ea" />
-              </TouchableOpacity>
             </>
           )}
         </View>
@@ -201,17 +180,6 @@ const styles = StyleSheet.create({
   progressFill: {
     height: '100%',
     backgroundColor: '#4f46e5'
-  },
-  detailsButton: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    marginTop: 16
-  },
-  detailsText: {
-    color: '#4f46e5',
-    marginRight: 8,
-    fontWeight: '500'
   }
 });
 
