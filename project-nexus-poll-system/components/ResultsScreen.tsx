@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
-import { View, Text, ActivityIndicator, Alert, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert, StyleSheet } from 'react-native';
 import { VictoryPie } from 'victory';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store/store';
-import { fetchPolls } from '../store/slices/pollSlice';
+import { fetchPolls, voteOnPoll } from '../store/slices/pollSlice';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute } from '@react-navigation/native';
 
@@ -12,7 +12,7 @@ const ResultsScreen = () => {
   const { polls, status, error } = useSelector((state: RootState) => state.poll);
   const route = useRoute();
   const pollId = route.params?.pollId;
-  const [selectedPoll, setSelectedPoll] = React.useState<string | null>(pollId || null);
+  const [selectedPoll, setSelectedPoll] = useState<string | null>(pollId || null);
 
   useEffect(() => {
     dispatch(fetchPolls());
@@ -29,6 +29,16 @@ const ResultsScreen = () => {
       setSelectedPoll(pollId);
     }
   }, [pollId]);
+
+  const handleVote = async (pollId: string, optionId: string) => {
+    try {
+      await dispatch(voteOnPoll({ pollId, optionId })).unwrap();
+      Alert.alert('Success', 'Your vote has been recorded!');
+      dispatch(fetchPolls()); // Refresh data after voting
+    } catch (error) {
+      Alert.alert('Error', 'Failed to submit vote. Please try again.');
+    }
+  };
 
   const calculatePercentage = (votes: number, total: number) => {
     return total > 0 ? Math.round((votes / total) * 100) : 0;
@@ -84,7 +94,12 @@ const ResultsScreen = () => {
 
               <View style={styles.optionsContainer}>
                 {Object.entries(poll.options).map(([optionId, option]) => (
-                  <View key={optionId} style={styles.optionButton}>
+                  <TouchableOpacity
+                    key={optionId}
+                    onPress={() => handleVote(poll.id, optionId)}
+                    disabled={status === 'loading'}
+                    style={styles.optionButton}
+                  >
                     <View style={styles.optionContent}>
                       <Text style={styles.optionText}>{option.text}</Text>
                       <Text style={styles.voteCount}>{calculatePercentage(option.votes, poll.totalVotes)}%</Text>
@@ -97,7 +112,7 @@ const ResultsScreen = () => {
                         ]}
                       />
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 ))}
               </View>
             </>
