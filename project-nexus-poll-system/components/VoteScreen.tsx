@@ -1,122 +1,80 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Alert, ImageBackground } from 'react-native';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, increment } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
+import { View, Text, TouchableOpacity, Alert, ActivityIndicator, ScrollView } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, AppDispatch } from '../store/store';
+import { fetchPolls, voteOnPoll } from '../store/slices/pollSlice';
 import { useNavigation } from '@react-navigation/native';
+import { MaterialIcons } from '@expo/vector-icons';
 
-export default function VoteScreen() {
-  const [polls, setPolls] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [votingInProgress, setVotingInProgress] = useState(false);
+const VoteScreen = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { polls, status } = useSelector((state: RootState) => state.poll);
   const navigation = useNavigation();
-
+  
   useEffect(() => {
-    const pollsQuery = query(collection(db, 'polls'), orderBy('createdAt', 'desc'));
+    dispatch(fetchPolls());
+  }, [dispatch]);
 
-    const unsubscribe = onSnapshot(pollsQuery, (snapshot) => {
-      const pollsData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setPolls(pollsData);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  const handleVote = async (pollId, optionId) => {
+  const handleVote = async (pollId: string, optionId: string) => {
     try {
-      setVotingInProgress(true);
-      const pollRef = doc(db, 'polls', pollId);
-
-      await updateDoc(pollRef, {
-        [`options.${optionId}.votes`]: increment(1),
-        totalVotes: increment(1)
-      });
-
-      Alert.alert('Success', 'Your vote has been counted!');
+      await dispatch(voteOnPoll({ pollId, optionId })).unwrap();
+      Alert.alert('Success', 'Your vote has been recorded!');
+      dispatch(fetchPolls());
     } catch (error) {
       Alert.alert('Error', 'Failed to submit vote. Please try again.');
-    } finally {
-      setVotingInProgress(false);
     }
   };
 
-  if (loading) {
+  if (status === 'loading') {
     return (
-      <View className="flex-1 justify-center items-center bg-gray-50">
-        <ActivityIndicator size="large" color="#3b82f6" />
+      <View className="flex-1 justify-center items-center bg-gray-100">
+        <ActivityIndicator size="large" color="#6366F1" />
       </View>
     );
   }
 
   return (
-    <ImageBackground
-      source={require('../assets/images/ball.jpeg')}
-      className="flex-1 w-full h-full"
-      resizeMode="cover"
-    >
-      <SafeAreaView className="flex-1 bg-gray-50 p-4 bg-opacity-80">
-        <Text className="text-2xl font-bold mb-6 text-gray-800">Active Polls</Text>
-
-        {polls.length === 0 ? (
-          <View className="flex-1 justify-center items-center">
-            <Text className="text-gray-500 text-lg">No active polls available</Text>
-          </View>
-        ) : (
-          polls.map(poll => (
-            <View key={poll.id} className="mb-6 bg-white rounded-xl p-4 shadow-sm">
-              <Text className="text-lg font-semibold mb-4 text-gray-800">{poll.question}</Text>
-
-              <View className="mb-4">
-                <Text className="text-sm text-gray-500 mb-2">
-                  {poll.totalVotes} total votes
-                </Text>
-
-                {Object.entries(poll.options).map(([optionId, option]) => (
-                  <TouchableOpacity
-                    key={optionId}
-                    onPress={() => handleVote(poll.id, optionId)}
-                    disabled={votingInProgress}
-                    className="mb-3"
-                  >
-                    <View className="bg-purple-50 rounded-lg p-3">
-                      <View className="flex-row justify-between items-center mb-1">
-                        <Text className="text-base font-medium text-purple-800">
-                          {option.text}
-                        </Text>
-                        <Text className="text-sm text-purple-600">
-                          {option.votes} votes
-                        </Text>
-                      </View>
-
-                      <View className="h-2 bg-purple-100 rounded-full overflow-hidden">
-                        <View
-                          className="h-full bg-purple-500"
-                          style={{
-                            width: `${(option.votes / poll.totalVotes) * 100}%`
-                          }}
-                        />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              <TouchableOpacity
-                onPress={() => navigation.navigate('results', { pollId: poll.id })}
-                className="flex-row items-center justify-end"
-              >
-                <Text className="text-purple-600 mr-2">View Details</Text>
-                <MaterialIcons name="arrow-forward" size={20} color="#9333ea" />
-              </TouchableOpacity>
+    <ScrollView className="flex-1 p-4 bg-gray-100">
+      <Text className="text-2xl font-bold text-gray-900 mb-4">Active Polls</Text>
+      {polls.length === 0 ? (
+        <View className="flex-1 justify-center items-center mt-20">
+          <Text className="text-gray-500 text-lg">No active polls available</Text>
+        </View>
+      ) : (
+        polls.map((poll) => (
+          <View key={poll.id} className="bg-white p-4 rounded-xl shadow-md mb-4">
+            <Text className="text-lg font-semibold text-gray-800 mb-2">{poll.question}</Text>
+            <Text className="text-gray-500 text-sm mb-4">{poll.totalVotes} total votes</Text>
+            <View className="space-y-3">
+              {Object.entries(poll.options).map(([optionId, option]) => (
+                <TouchableOpacity
+                  key={optionId}
+                  onPress={() => handleVote(poll.id, optionId)}
+                  disabled={status === 'loading'}
+                  className="bg-indigo-100 p-3 rounded-lg shadow"
+                >
+                  <View className="flex-row justify-between">
+                    <Text className="text-indigo-700 font-medium">{option.text}</Text>
+                    <Text className="text-indigo-700">{option.votes} votes</Text>
+                  </View>
+                  <View className="w-full bg-indigo-300 h-2 rounded-full mt-2 overflow-hidden">
+                    <View style={{ width: `${(option.votes / poll.totalVotes) * 100}%` }} className="h-full bg-indigo-600" />
+                  </View>
+                </TouchableOpacity>
+              ))}
             </View>
-          ))
-        )}
-      </SafeAreaView>
-    </ImageBackground>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('results', { pollId: poll.id })}
+              className="flex-row items-center justify-end mt-3"
+            >
+              <Text className="text-indigo-600 mr-2">View Details</Text>
+              <MaterialIcons name="arrow-forward" size={20} color="#4F46E5" />
+            </TouchableOpacity>
+          </View>
+        ))
+      )}
+    </ScrollView>
   );
-}
+};
+
+export default VoteScreen;

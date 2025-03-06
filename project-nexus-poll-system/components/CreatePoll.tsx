@@ -1,6 +1,5 @@
-import React from 'react';
-import { View, TextInput, TouchableOpacity, Text, Alert, ImageBackground } from 'react-native';
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { View, TextInput, TouchableOpacity, Text, Alert, ImageBackground, ScrollView } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -35,7 +34,7 @@ export default function CreatePoll() {
     setValue('options', [...options, '']);
   };
 
-  const handleRemoveOption = (index: number) => {
+  const handleRemoveOption = (index) => {
     const newOptions = options.filter((_, i) => i !== index);
     setValue('options', newOptions);
   };
@@ -43,25 +42,24 @@ export default function CreatePoll() {
   const onSubmit = async (data) => {
     try {
       setIsSubmitting(true);
-  
+      
       const pollData = {
         question: data.question,
         options: data.options.reduce((acc, text, index) => {
           const optionId = `opt${index}`;
           acc[optionId] = { text, votes: 0 };
           return acc;
-        }, {}),  // ✅ Convert array to object
+        }, {}),
         createdAt: new Date(),
         totalVotes: 0
       };
-  
+
       await addDoc(collection(db, 'polls'), pollData);
-  
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2000);
       setValue('question', '');
       setValue('options', ['', '']);
-  
+      
       console.log('✅ Poll created successfully:', pollData);
     } catch (error) {
       console.error('❌ Error creating poll:', error);
@@ -70,7 +68,6 @@ export default function CreatePoll() {
       setIsSubmitting(false);
     }
   };
-  
 
   return (
     <SafeAreaProvider>
@@ -79,26 +76,27 @@ export default function CreatePoll() {
         className="flex-1 w-full h-full"
         resizeMode="cover"
       >
-        <SafeAreaView className="flex-1 bg-gray-50 p-4 bg-opacity-80 w-full">
-          <Controller
-            control={control}
-            name="question"
-            render={({ field }) => (
-              <View className="mb-6">
-                <TextInput
-                  placeholder="Enter your poll question"
-                  className="bg-white p-4 rounded-xl text-lg border border-gray-200"
-                  onChangeText={field.onChange}
-                  value={field.value}
-                />
-                {errors.question && (
-                  <Text className="text-red-500 mt-2 ml-2">{errors.question.message}</Text>
-                )}
-              </View>
-            )}
-          />
+        <SafeAreaView className="flex-1 bg-gray-50 p-6 bg-opacity-90 w-full">
+          <ScrollView className="flex-1">
+            <Text className="text-3xl font-bold text-indigo-700 text-center mb-6">Create a Poll</Text>
+            <Controller
+              control={control}
+              name="question"
+              render={({ field }) => (
+                <View className="mb-6">
+                  <TextInput
+                    placeholder="Enter your poll question"
+                    className="bg-white p-4 rounded-xl text-lg border border-gray-300 shadow-md"
+                    onChangeText={field.onChange}
+                    value={field.value}
+                  />
+                  {errors.question && (
+                    <Text className="text-red-500 mt-2 ml-2">{errors.question.message}</Text>
+                  )}
+                </View>
+              )}
+            />
 
-          <View className="mb-4">
             <Text className="text-lg font-semibold mb-4 text-gray-700">Options:</Text>
             {options.map((_, index) => (
               <View key={index} className="flex-row items-center mb-3">
@@ -109,7 +107,7 @@ export default function CreatePoll() {
                     <View className="flex-1 mr-2">
                       <TextInput
                         placeholder={`Option ${index + 1}`}
-                        className="bg-white p-3 rounded-lg border border-gray-200"
+                        className="bg-white p-3 rounded-lg border border-gray-300 shadow-md"
                         onChangeText={field.onChange}
                         value={field.value}
                       />
@@ -124,38 +122,35 @@ export default function CreatePoll() {
                 {options.length > 2 && (
                   <TouchableOpacity
                     onPress={() => handleRemoveOption(index)}
-                    className="p-2 bg-red-100 rounded-lg"
+                    className="p-2 bg-red-500 rounded-lg shadow-lg"
                   >
-                    <MaterialIcons name="delete" size={20} color="#dc2626" />
+                    <MaterialIcons name="delete" size={20} color="white" />
                   </TouchableOpacity>
                 )}
               </View>
             ))}
-            {errors.options?.message && (
-              <Text className="text-red-500 mt-2 ml-2">{errors.options.message}</Text>
-            )}
-          </View>
 
-          <TouchableOpacity
-            onPress={handleAddOption}
-            className="mb-6 flex-row items-center justify-center bg-purple-100 p-3 rounded-lg"
-          >
-            <MaterialIcons name="add-circle" size={20} color="#9333ea" />
-            <Text className="text-purple-600 ml-2 font-medium">Add Option</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleAddOption}
+              className="mb-6 flex-row items-center justify-center bg-purple-600 p-3 rounded-lg shadow-md"
+            >
+              <MaterialIcons name="add-circle" size={20} color="white" />
+              <Text className="text-white ml-2 font-medium">Add Option</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={handleSubmit(onSubmit)}
-            disabled={isSubmitting}
-            className="bg-purple-600 p-4 rounded-xl flex-row justify-center items-center"
-          >
-            <Text className="text-white text-lg font-semibold">
-              {isSubmitting ? 'Creating...' : 'Create Poll'}
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleSubmit(onSubmit)}
+              disabled={isSubmitting}
+              className="bg-indigo-700 p-4 rounded-xl flex-row justify-center items-center shadow-md"
+            >
+              <Text className="text-white text-lg font-semibold">
+                {isSubmitting ? 'Creating...' : 'Create Poll'}
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
 
           {showSuccess && (
-            <View className="absolute inset-0 justify-center items-center">
+            <View className="absolute inset-0 justify-center items-center bg-black bg-opacity-50">
               <Lottie
                 source={animation}
                 autoPlay
