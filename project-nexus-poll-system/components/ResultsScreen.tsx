@@ -66,7 +66,7 @@ const ResultsScreen = () => {
                   data={Object.values(poll.options).map(option => ({
                     x: option.text,
                     y: option.votes,
-                    label: `${option.text}\n${option.votes}`
+                    label: `${option.text}\n${calculatePercentage(option.votes, poll.totalVotes)}%`
                   }))}
                   colorScale={["#f87171", "#60a5fa", "#fbbf24", "#34d399", "#f59e0b"]}
                   width={350}
@@ -95,7 +95,7 @@ const ResultsScreen = () => {
                   >
                     <View style={styles.optionContent}>
                       <Text style={styles.optionText}>{option.text}</Text>
-                      <Text style={styles.voteCount}>{option.votes} votes</Text>
+                      <Text style={styles.voteCount}>{calculatePercentage(option.votes, poll.totalVotes)}%</Text>
                     </View>
                     <View style={styles.progressBar}>
                       <View

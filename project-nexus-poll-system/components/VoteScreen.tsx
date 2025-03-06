@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Alert, ImageBackground } from 'react-native';
-import { useEffect, useState } from 'react';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -44,11 +43,6 @@ export default function VoteScreen() {
     } finally {
       setVotingInProgress(false);
     }
-  };
-
-  const calculatePercentage = (votes, totalVotes) => {
-    if (totalVotes === 0) return 0;
-    return Math.round((votes / totalVotes) * 100);
   };
 
   if (loading) {
@@ -95,7 +89,7 @@ export default function VoteScreen() {
                           {option.text}
                         </Text>
                         <Text className="text-sm text-purple-600">
-                          {calculatePercentage(option.votes, poll.totalVotes)}%
+                          {option.votes} votes
                         </Text>
                       </View>
 
@@ -103,7 +97,7 @@ export default function VoteScreen() {
                         <View
                           className="h-full bg-purple-500"
                           style={{
-                            width: `${calculatePercentage(option.votes, poll.totalVotes)}%`
+                            width: `${(option.votes / poll.totalVotes) * 100}%`
                           }}
                         />
                       </View>
