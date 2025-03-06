@@ -6,6 +6,7 @@ interface Poll {
     id: string;
     question: string;
     options: Array<{ id: string; text: string; votes: number }>;
+    totalVotes: number;
 }
 
 interface PollState {
@@ -34,7 +35,8 @@ export const voteOnPoll = createAsyncThunk('polls/vote',
     async ({ pollId, optionId }: { pollId: string; optionId: string }) => {
         const pollRef = doc(db, 'polls', pollId);
         await updateDoc(pollRef, {
-            [`options.${optionId}.votes`]: increment(1)
+            [`options.${optionId}.votes`]: increment(1),
+            totalVotes: increment(1)
         });
         return { pollId, optionId };
     });
@@ -61,7 +63,10 @@ const pollSlice = createSlice({
                 const poll = state.polls.find(p => p.id === pollId);
                 if (poll) {
                     const option = poll.options.find(opt => opt.id === optionId);
-                    if (option) option.votes += 1;
+                    if (option) {
+                        option.votes += 1;
+                        poll.totalVotes += 1;
+                    }
                 }
             });
     }
