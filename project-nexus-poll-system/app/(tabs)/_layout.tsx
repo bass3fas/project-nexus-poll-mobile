@@ -1,8 +1,24 @@
-// app/(tabs)/_layout.tsx
+import React, { useState, useEffect } from 'react';
 import { Tabs } from "expo-router";
 import { MaterialIcons, FontAwesome, Feather } from "@expo/vector-icons";
+import LoadingScreen from '../../components/LoadingScreen';
 
 export default function TabLayout() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate a loading process
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000); // Adjust the timeout duration as needed
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
   return (
     <Tabs
       screenOptions={{
