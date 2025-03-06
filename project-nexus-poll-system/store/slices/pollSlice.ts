@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { collection, getDocs, doc, updateDoc, increment } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, increment, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 
 interface Poll {
@@ -22,12 +22,23 @@ const initialState: PollState = {
 };
 
 // Async Thunk: Fetch polls from Firestore
-export const fetchPolls = createAsyncThunk('polls/fetchPolls', async () => {
+export const fetchPolls = createAsyncThunk('polls/fetchPolls', async (_, { dispatch }) => {
     const querySnapshot = await getDocs(collection(db, 'polls'));
-    return querySnapshot.docs.map(doc => ({
+    const polls = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
     })) as Poll[];
+
+    // Set up real-time listener
+    onSnapshot(collection(db, 'polls'), (snapshot) => {
+        const updatedPolls = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        })) as Poll[];
+        dispatch(setPolls(updatedPolls));
+    });
+
+    return polls;
 });
 
 // Async Thunk: Handle voting
@@ -44,7 +55,11 @@ export const voteOnPoll = createAsyncThunk('polls/vote',
 const pollSlice = createSlice({
     name: 'polls',
     initialState,
-    reducers: {},
+    reducers: {
+        setPolls: (state, action) => {
+            state.polls = action.payload;
+        }
+    },
     extraReducers: (builder) => {
         builder
             .addCase(fetchPolls.pending, (state) => {
@@ -71,5 +86,7 @@ const pollSlice = createSlice({
             });
     }
 });
+
+export const { setPolls } = pollSlice.actions;
 
 export default pollSlice.reducer;
