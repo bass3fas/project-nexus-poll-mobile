@@ -33,18 +33,25 @@ export default function CreatePoll() {
     setValue('options', [...options, '']);
   };
 
-  const handleRemoveOption = (index) => {
+  const handleRemoveOption = (index: number) => {
     const newOptions = options.filter((_, i) => i !== index);
     setValue('options', newOptions);
   };
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: { question: string; options: string[] }) => {
     try {
       setIsSubmitting(true);
       
+      type PollOptions = {
+        [key: string]: {
+          text: string;
+          votes: number;
+        };
+      };
+
       const pollData = {
         question: data.question,
-        options: data.options.reduce((acc, text, index) => {
+        options: data.options.reduce<PollOptions>((acc, text, index) => {
           const optionId = `opt${index}`;
           acc[optionId] = { text, votes: 0 };
           return acc;

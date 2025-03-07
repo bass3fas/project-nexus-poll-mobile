@@ -9,7 +9,7 @@ import { useRoute } from '@react-navigation/native';
 const ResultsScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { polls, status, error } = useSelector((state: RootState) => state.poll);
-  const route = useRoute();
+  const route = useRoute<{ key: string; name: string; params: { pollId: string } }>();
   const pollId = route.params?.pollId;
   const [selectedPoll, setSelectedPoll] = useState<string | null>(pollId || null);
 
@@ -64,7 +64,7 @@ const ResultsScreen = () => {
                 height={350}
                 padAngle={2}
                 innerRadius={80}
-                labelRadius={({ datum }) => 120}
+                labelRadius={120}
                 style={{
                   labels: { fill: 'black', fontSize: 14, fontWeight: 'bold', textAnchor: 'middle' },
                 }}
@@ -75,7 +75,7 @@ const ResultsScreen = () => {
                   <TouchableOpacity
                     key={optionId}
                     onPress={() => handleVote(poll.id, optionId)}
-                    disabled={status === 'loading'}
+                    disabled={status !== 'idle' && status !== 'succeeded' && status !== 'failed'}
                     className="bg-indigo-100 p-3 rounded-lg shadow"
                   >
                     <View className="flex-row justify-between">
@@ -83,7 +83,7 @@ const ResultsScreen = () => {
                       <Text className="text-indigo-700">{calculatePercentage(option.votes, poll.totalVotes)}%</Text>
                     </View>
                     <View className="w-full bg-indigo-300 h-2 rounded-full mt-2 overflow-hidden">
-                      <View style={{ width: `${calculatePercentage(option.votes, poll.totalVotes)}%` }} className="h-full bg-indigo-600" />
+                      <View style={{ width: `${parseFloat(calculatePercentage(option.votes, poll.totalVotes))}%` }} className="h-full bg-indigo-600" />
                     </View>
                   </TouchableOpacity>
                 ))}

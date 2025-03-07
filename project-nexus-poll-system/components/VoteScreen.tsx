@@ -5,11 +5,17 @@ import { RootState, AppDispatch } from '../store/store';
 import { fetchPolls, voteOnPoll } from '../store/slices/pollSlice';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { StackNavigationProp } from '@react-navigation/stack';
+
+  
 
 const VoteScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { polls, status } = useSelector((state: RootState) => state.poll);
-  const navigation = useNavigation();
+  
+  type ResultsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'results'>;
+  
+  const navigation = useNavigation<ResultsScreenNavigationProp>();
   
   useEffect(() => {
     dispatch(fetchPolls());
@@ -50,7 +56,7 @@ const VoteScreen = () => {
                 <TouchableOpacity
                   key={optionId}
                   onPress={() => handleVote(poll.id, optionId)}
-                  disabled={status === 'loading'}
+                  disabled={status !== 'succeeded'}
                   className="bg-indigo-100 p-3 rounded-lg shadow"
                 >
                   <View className="flex-row justify-between">

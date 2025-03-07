@@ -45,7 +45,7 @@ export default function SignUpScreen() {
       }, 2000); // Adjust the delay as needed
     } catch (error) {
       console.error("Error during sign-up:", error);
-      setErrorMessage(error.message);
+      setErrorMessage((error as any).message);
     } finally {
       setIsSubmitting(false);
     }
