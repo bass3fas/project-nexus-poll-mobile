@@ -1,27 +1,34 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import LottieView from 'lottie-react-native';
+import useFonts from '../hooks/useFonts';
 import "../global.css";
 
 export default function WelcomeScreen() {
+  const fontsLoaded = useFonts();
+
+  if (!fontsLoaded) {
+    return null; 
+  }
+
   return (
     <ScrollView contentContainerStyle={{ flex: 1 }}>
       <LinearGradient colors={['#6C47FF', '#A020F0']} className="flex-1 justify-center items-center px-6">
         {/* Animated Poll Icon */}
-        
-        <LottieView
-          source={require('../assets/animations/chart.json')} // Add a poll-related animation
-          autoPlay
-          loop
-          style={{ width: 50, height: 50 }} // Adjust the size here
-        />
-        
+        <View className="flex-row justify-center mb-4">
+          <LottieView
+            source={require('../assets/animations/poll-box.json')} // Add a poll-related animation
+            autoPlay
+            loop
+            style={{ width: 100, height: 100 }} 
+          />
+        </View>
 
         {/* Welcome Text */}
-        <Text className="text-4xl font-bold text-white text-center mb-4 mt-1">
-          Welcome to Nexus Poll
+        <Text style={styles.welcomeText}>
+          Nexus Poll
         </Text>
 
         {/* Action Buttons */}
@@ -42,3 +49,15 @@ export default function WelcomeScreen() {
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  welcomeText: {
+    fontFamily: 'Mochiy', 
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: 20,
+    marginTop: 10,
+  },
+});

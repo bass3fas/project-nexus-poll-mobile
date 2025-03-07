@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Tabs } from "expo-router";
+import { Tabs, useNavigation } from "expo-router";
 import { MaterialIcons, FontAwesome, Feather } from "@expo/vector-icons";
+import { TouchableOpacity } from 'react-native';
 import LoadingScreen from '../../components/LoadingScreen';
 
 export default function TabLayout() {
   const [isLoading, setIsLoading] = useState(true);
+  const navigation = useNavigation();
 
   useEffect(() => {
     // Simulate a loading process
@@ -22,7 +24,12 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
+        headerLeft: () => (
+          <TouchableOpacity onPress={() => navigation.navigate('index')}>
+            <MaterialIcons name="arrow-back" size={24} color="black" style={{ marginLeft: 16 }} />
+          </TouchableOpacity>
+        ),
         tabBarActiveTintColor: '#3b82f6',
         tabBarInactiveTintColor: '#64748b',
         tabBarStyle: {
@@ -31,7 +38,7 @@ export default function TabLayout() {
           backgroundColor: '#f8fafc'
         },
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: 10,
           fontWeight: '500'
         }
       }}

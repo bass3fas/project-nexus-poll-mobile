@@ -126,7 +126,7 @@ export default function CreatePoll() {
 
           <TouchableOpacity
             onPress={handleAddOption}
-            className="mb-6 flex-row items-center justify-center bg-purple-300 mx-20 py-2 mt-3 rounded-lg shadow-md"
+            className=" flex-row items-center justify-center bg-purple-400 mb-3 py-2 mt-3 rounded-lg shadow-md"
           >
             <MaterialIcons name="add-circle" size={20} color="white" />
             <Text className="text-white ml-2 font-medium">Add Option</Text>
@@ -135,7 +135,7 @@ export default function CreatePoll() {
           <TouchableOpacity
             onPress={handleSubmit(onSubmit)}
             disabled={isSubmitting}
-            className="bg-purple-500 p-4 rounded-xl flex-row justify-center items-center shadow-md"
+            className="bg-purple-600 p-4 rounded-xl flex-row justify-center items-center shadow-md"
           >
             <Text className="text-white text-lg font-semibold">
               {isSubmitting ? 'Creating...' : 'Create Poll'}
