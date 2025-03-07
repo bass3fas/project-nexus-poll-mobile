@@ -3,9 +3,10 @@ import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, StyleSheet 
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { setDoc, doc } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
-import { useRouter } from "expo-router";
+import { useRouter, Link } from "expo-router";
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import Lottie from 'lottie-react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import animation from '../assets/animations/success.json';
 
 export default function SignUpScreen() {
@@ -51,9 +52,14 @@ export default function SignUpScreen() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView className="flex-1 bg-gray-50 p-6">
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.push('/')}>
+            <MaterialIcons name="arrow-back" size={24} color="black" />
+          </TouchableOpacity>
+          <Text style={styles.headerText}>Sign Up</Text>
+        </View>
         <ScrollView className="flex-1 p-4">
-          <Text className="text-2xl font-bold text-black mb-6">Sign Up</Text>
           <TextInput
             placeholder="Name"
             className="bg-white p-4 rounded-xl text-md border border-gray-300 shadow-md mb-4"
@@ -85,6 +91,11 @@ export default function SignUpScreen() {
               {isSubmitting ? 'Creating...' : 'Sign Up'}
             </Text>
           </TouchableOpacity>
+          <Link href="/signin" asChild>
+            <TouchableOpacity>
+              <Text style={styles.signInText}>or Sign in here</Text>
+            </TouchableOpacity>
+          </Link>
         </ScrollView>
 
         {showSuccess && (
@@ -103,10 +114,35 @@ export default function SignUpScreen() {
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: 'gray-50',
+    padding: 6,
+    paddingTop: 20, // Add padding to move the content down
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    marginTop: 20,
+    marginLeft: 10,
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginLeft: 10,
+  },
   errorText: {
     color: 'red',
     fontSize: 14,
     marginTop: 4,
     marginBottom: 4,
+  },
+  signInText: {
+    color: 'blue',
+    fontSize: 16,
+    textDecorationLine: 'underline',
+    textAlign: 'center',
+    marginTop: 20,
   },
 });
