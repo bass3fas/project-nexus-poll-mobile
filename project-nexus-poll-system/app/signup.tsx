@@ -8,6 +8,7 @@ import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import Lottie from 'lottie-react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import animation from '../assets/animations/success.json';
+import { styles } from '../assets/styles';
 
 export default function SignUpScreen() {
   const router = useRouter();
@@ -99,12 +100,12 @@ export default function SignUpScreen() {
         </ScrollView>
 
         {showSuccess && (
-          <View className="absolute inset-0 justify-center items-center bg-black bg-opacity-50">
+          <View style={styles.successOverlay}>
             <Lottie
               source={animation}
               autoPlay
               loop={false}
-              style={{ width: 200, height: 200 }}
+              style={styles.successAnimation}
             />
           </View>
         )}
@@ -112,37 +113,3 @@ export default function SignUpScreen() {
     </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: 'gray-50',
-    padding: 6,
-    paddingTop: 20, // Add padding to move the content down
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-    marginTop: 20,
-    marginLeft: 10,
-  },
-  headerText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginLeft: 10,
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 14,
-    marginTop: 4,
-    marginBottom: 4,
-  },
-  signInText: {
-    color: 'blue',
-    fontSize: 16,
-    textDecorationLine: 'underline',
-    textAlign: 'center',
-    marginTop: 20,
-  },
-});

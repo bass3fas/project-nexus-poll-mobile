@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 import { useRouter, Link } from "expo-router";
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import { styles } from '../assets/styles';
 
 export default function SignInScreen() {
   const router = useRouter();
@@ -80,7 +81,7 @@ export default function SignInScreen() {
           </TouchableOpacity>
           <Link href="/signup" asChild>
             <TouchableOpacity>
-              <Text style={styles.signUpText}>or Sign up here</Text>
+              <Text style={styles.signInText}>or Sign up here</Text>
             </TouchableOpacity>
           </Link>
         </ScrollView>
@@ -88,37 +89,3 @@ export default function SignInScreen() {
     </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: 'gray-50',
-    padding: 6,
-    paddingTop: 20, // Add padding to move the content down
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-    marginTop: 20,
-    marginLeft: 10,
-  },
-  headerText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginLeft: 10,
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 14,
-    marginTop: 4,
-    marginBottom: 4,
-  },
-  signUpText: {
-    color: 'blue',
-    fontSize: 16,
-    textDecorationLine: 'underline',
-    textAlign: 'center',
-    marginTop: 20,
-  },
-});
