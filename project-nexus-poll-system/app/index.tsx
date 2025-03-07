@@ -33,18 +33,25 @@ export default function WelcomeScreen() {
 
         {/* Action Buttons */}
         <View className="flex-row justify-center w-1/2 px-2 mb-10">
-          <Link href="/create" asChild>
+          <Link href="/signin" asChild>
             <TouchableOpacity className="border border-white rounded-full mx-2 py-3 px-6">
-              <Text className="text-white text-center text-lg">Create a Poll</Text>
+              <Text className="text-white text-center text-lg">Sign In</Text>
             </TouchableOpacity>
           </Link>
           
-          <Link href="/vote" asChild>
+          <Link href="/signup" asChild>
             <TouchableOpacity className="bg-white rounded-full mx-2 py-3 px-6 shadow-lg">
-              <Text className="text-purple-600 text-center text-lg font-semibold">Vote Now</Text>
+              <Text className="text-purple-600 text-center text-lg font-semibold">Sign Up</Text>
             </TouchableOpacity>
           </Link>
         </View>
+
+        {/* Check Live Votes */}
+        <Link href="/results" asChild>
+          <TouchableOpacity>
+            <Text style={styles.liveVotesText}>or check live votes</Text>
+          </TouchableOpacity>
+        </Link>
       </LinearGradient>
     </ScrollView>
   );
@@ -58,6 +65,12 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
     marginBottom: 20,
+    marginTop: 10,
+  },
+  liveVotesText: {
+    color: 'white',
+    fontSize: 16,
+    textDecorationLine: 'underline',
     marginTop: 10,
   },
 });

@@ -23,6 +23,8 @@ export default function RootLayout() {
       <LinearGradient colors={['#6C47FF', '#A020F0']} style={{ flex: 1 }}>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" /> {/* Welcome Screen */}
+          <Stack.Screen name="signin" /> {/* Sign In Screen */}
+          <Stack.Screen name="signup" /> {/* Sign Up Screen */}
           <Stack.Screen name="(tabs)" /> {/* Main app tabs */}
         </Stack>
       </LinearGradient>
