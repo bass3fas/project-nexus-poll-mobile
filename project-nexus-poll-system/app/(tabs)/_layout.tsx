@@ -26,7 +26,7 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: true,
         headerLeft: () => (
-          <TouchableOpacity onPress={() => navigation.navigate('index')}>
+          <TouchableOpacity onPress={() => navigation.navigate('index' as never)}>
             <MaterialIcons name="arrow-back" size={24} color="black" style={{ marginLeft: 16 }} />
           </TouchableOpacity>
         ),

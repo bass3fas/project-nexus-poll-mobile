@@ -8,6 +8,9 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
 
   
+type RootStackParamList = {
+  results: { pollId: string };
+};
 
 const VoteScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
