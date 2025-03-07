@@ -1,6 +1,5 @@
 import { StyleSheet } from "react-native";
 
-
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -71,6 +70,18 @@ const styles = StyleSheet.create({
   loadingAnimation: {
     width: 200,
     height: 200,
+  },
+  tabBarStyle: {
+    height: 60,
+    paddingBottom: 8,
+    backgroundColor: '#f8fafc',
+  },
+  tabBarLabelStyle: {
+    fontSize: 10,
+    fontWeight: '500',
+  },
+  backButton: {
+    marginLeft: 16,
   },
 });
 
