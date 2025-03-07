@@ -1,65 +1,73 @@
 # Project Nexus - Online Poll System
 
 ## 📌 Overview
-Project Nexus is an advanced software development initiative aimed at showcasing real-world application skills. This project involves building an **Online Poll System**, a dynamic and interactive polling platform that provides real-time voting and live result updates. The application will be built as a **mobile app** using React Native, Expo, Redux, and NativeWind.
+Project Nexus is an advanced mobile application designed to facilitate interactive online polling with real-time voting and result updates. The app is built using **React Native (Expo)** with robust state management, animations, and data validation.
 
 ## 🎯 Project Goals
 - **API Integration**: Fetch and display poll questions and real-time results from an API.
-- **State Management**: Use Redux to efficiently manage application state.
-- **Dynamic Visualizations**: Implement charts to visually represent live poll results.
-- **Real-time Updates**: Ensure seamless user interaction and immediate display of poll results.
-- **User-Friendly Interface**: Provide an intuitive and engaging experience.
+- **State Management**: Utilize Redux Toolkit for efficient data flow.
+- **Real-time Updates**: Enable live result visualization with Firebase Firestore.
+- **User-Friendly Interface**: Smooth UI with animations and dynamic styling.
+- **Data Validation**: Use Zod to ensure input data integrity.
 
-## 🦭 Technologies Used
-- **React Native (Expo)**: Component-based UI development.
+## 🛠 Technologies Used
+- **React Native (Expo)**: Cross-platform mobile development.
 - **Redux Toolkit**: State management.
-- **TypeScript**: Type safety and maintainability.
-- **Victory Native**: Charting library for visualizing poll results.
-- **NativeWind**: Tailwind CSS for styling in React Native.
-- **Firebase/Firestore**: Real-time database for dynamic poll updates.
+- **TypeScript**: Type safety.
+- **Victory Native**: Charts for poll visualization.
+- **NativeWind**: Tailwind CSS-based styling.
+- **Firebase Firestore**: Real-time data storage.
+- **Lottie**: Animations for enhanced UI.
+- **Zod**: Schema validation for poll inputs.
 
 ## 📋 Setup & Implementation Steps
 
 ### **1. Install Prerequisites**
-Ensure you have Node.js installed.
+Ensure you have Node.js and Expo CLI installed:
+```bash
+npm install -g expo-cli
+```
 
 ### **2. Initialize the Project**
 ```bash
-npx create-expo-app@latest project-nexus-poll-system
+npx create-expo-app@latest project-nexus-poll-system --template with-router
 cd project-nexus-poll-system
 ```
-Choose the **TypeScript** template when prompted.
 
 ### **3. Install Dependencies**
 ```bash
-npm install nativewind tailwindcss@^3.4.17 react-native-reanimated@3 16.2 react-native-safe-area-context
+npm install nativewind tailwindcss@^3.4.17
 npm install react-redux @reduxjs/toolkit
 npm install victory-native react-native-svg
-npm install expo-constants
-npm install firebase
+npm install expo-constants firebase
+npm install lottie-react-native lottie-ios
+npm install zod
 ```
 
-### **4. Set up Tailwind**
-Run ```npx tailwindcss init``` to create a tailwind.config.js file
+### **4. Set Up Tailwind**
+Run:
+```bash
+npx tailwindcss init
+```
+Modify `tailwind.config.js`:
 ```ts
-/** @type {import('tailwindcss').Config} */
 module.exports = {
-  // NOTE: Update this to include the paths to all of your component files.
   content: ["./app/**/*.{js,jsx,ts,tsx}"],
   presets: [require("nativewind/preset")],
   theme: {
     extend: {},
   },
   plugins: [],
-}
+};
 ```
-global.css
+Create `global.css`:
 ```css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 ```
-babel.config.js
+
+Modify `babel.config.js`:
 ```js
 module.exports = function (api) {
   api.cache(true);
@@ -71,32 +79,9 @@ module.exports = function (api) {
   };
 };
 ```
-metro.config.js
-```js
-const { getDefaultConfig } = require("expo/metro-config");
-const { withNativeWind } = require('nativewind/metro');
 
-const config = getDefaultConfig(__dirname)
-
-module.exports = withNativeWind(config, { input: './global.css' })
-```
-Modify your app.json
-Switch the bundler to use the Metro bundler
-```json
-{
-  "expo": {
-    "web": {
-      "bundler": "metro"
-    }
-  }
-}
-```
-app.d.ts
-```ts
-/// <reference types="nativewind/types" />
-```
 ### **5. Set Up Redux Store**
-Create a `store.ts` file:
+Create `store.ts`:
 ```ts
 import { configureStore } from '@reduxjs/toolkit';
 import pollReducer from './slices/pollSlice';
@@ -152,16 +137,16 @@ export const { addPoll, votePoll } = pollSlice.actions;
 export default pollSlice.reducer;
 ```
 
-### **7. Firebase Setup (Critical for Real-Time)**
+### **7. Firebase Setup**
 1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com).
-2. Enable Firestore Database (Test Mode).
+2. Enable Firestore Database.
 3. Add Firebase configuration to `.env`:
 ```ini
 EXPO_PUBLIC_FIREBASE_API_KEY=your_key
 EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your_domain
 EXPO_PUBLIC_FIREBASE_PROJECT_ID=your_id
 ```
-4. Initialize Firebase in your project (`firebaseConfig.ts`):
+4. Initialize Firebase (`firebaseConfig.ts`):
 ```ts
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
@@ -178,13 +163,13 @@ export const db = getFirestore(app);
 export const auth = getAuth(app);
 ```
 
-### **8. Implement Poll Creation and Voting**
-- **Poll Creation:** A screen where users can create a poll.
-- **Voting Screen:** Users can vote on polls.
-- **Live Result Screen:** Display real-time poll results with charts.
+### **8. Implement Poll Features**
+- **Poll Creation**: Form with input validation using Zod.
+- **Voting Screen**: Allow users to vote on active polls.
+- **Live Result Screen**: Display real-time poll results with Victory charts.
 
 ### **9. Use Charts for Visualization**
-Example of integrating a chart using `VictoryPie`:
+Example using `VictoryPie`:
 ```tsx
 import { VictoryPie } from 'victory-native';
 
@@ -215,21 +200,17 @@ git commit -m "fix: resolve Redux state update issue"
 ```
 
 ## 📢 Deployment
-For testing the app:
+For testing:
 ```bash
-expo build:android  # Build Android APK
-expo build:ios      # Build iOS App
+expo build:android  # Android APK
+expo build:ios      # iOS App
 ```
 
 ## 📊 Evaluation Criteria
-Your project will be evaluated based on:
-- **Functionality**: Ability to create polls, vote, and see live results.
-- **Code Quality**: Clean, modular, and maintainable code.
-- **User Experience**: Smooth interactions and dynamic visualizations.
-- **Version Control**: Proper commit messages and repository structure.
+- **Functionality**: Create polls, vote, and see live results.
+- **Code Quality**: Modular, clean, maintainable.
+- **User Experience**: Smooth UI with animations.
 
 ## 🎯 Final Words
-Project Nexus is your opportunity to **demonstrate expertise in real-world software development**. Follow the outlined steps, apply best practices, and build a project you can proudly showcase to potential employers!
-
-Happy coding! 🚀
+This project demonstrates expertise in **React Native, Redux, Firebase, and real-time applications**. Build something amazing! 🚀
 

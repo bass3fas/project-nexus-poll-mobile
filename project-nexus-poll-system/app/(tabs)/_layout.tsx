@@ -10,7 +10,7 @@ export default function TabLayout() {
     // Simulate a loading process
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2000); // Adjust the timeout duration as needed
+    }, 4000); // Adjust the timeout duration as needed
 
     return () => clearTimeout(timer);
   }, []);
