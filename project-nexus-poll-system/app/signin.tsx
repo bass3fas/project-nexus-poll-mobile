@@ -1,22 +1,26 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, StyleSheet } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 import { useRouter } from "expo-router";
+import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function SignInScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSignIn = async () => {
     if (!email || !password) {
-      Alert.alert("Error", "Please enter email and password.");
+      setErrorMessage("Please enter email and password.");
       return;
     }
 
     try {
+      setIsSubmitting(true);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
@@ -26,23 +30,59 @@ export default function SignInScreen() {
       if (userDoc.exists()) {
         console.log("User Data:", userDoc.data());
         Alert.alert("Welcome", `Hello ${userDoc.data().name}!`);
-        router.push("/(tabs)"); // Redirect to main app
+        router.push("/create"); // Redirect to create page
       } else {
-        Alert.alert("Error", "User data not found.");
+        setErrorMessage("User data not found.");
       }
     } catch (error) {
-      Alert.alert("Error", "Invalid email or password.");
+      console.error("Error during sign-in:", error);
+      setErrorMessage("Invalid email or password.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <View className="flex-1 justify-center items-center p-6 bg-white">
-      <Text className="text-2xl font-bold mb-4">Sign In</Text>
-      <TextInput placeholder="Email" className="border w-full p-2 mb-3" onChangeText={setEmail} />
-      <TextInput placeholder="Password" className="border w-full p-2 mb-3" secureTextEntry onChangeText={setPassword} />
-      <TouchableOpacity className="bg-purple-600 p-3 rounded-full" onPress={handleSignIn}>
-        <Text className="text-white text-center">Sign In</Text>
-      </TouchableOpacity>
-    </View>
+    <SafeAreaProvider>
+      <SafeAreaView className="flex-1 bg-gray-50 p-6">
+        <ScrollView className="flex-1 p-4">
+          <Text className="text-2xl font-bold text-black mb-6">Sign In</Text>
+          <TextInput
+            placeholder="Email"
+            className="bg-white p-4 rounded-xl text-md border border-gray-300 shadow-md mb-4"
+            onChangeText={setEmail}
+            value={email}
+          />
+          <TextInput
+            placeholder="Password"
+            className="bg-white p-4 rounded-xl text-md border border-gray-300 shadow-md mb-1"
+            secureTextEntry
+            onChangeText={setPassword}
+            value={password}
+          />
+          {errorMessage ? (
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          ) : null}
+          <TouchableOpacity
+            onPress={handleSignIn}
+            disabled={isSubmitting}
+            className="bg-purple-600 p-4 rounded-xl flex-row justify-center items-center shadow-md mt-4"
+          >
+            <Text className="text-white text-lg font-semibold">
+              {isSubmitting ? 'Signing In...' : 'Sign In'}
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  errorText: {
+    color: 'red',
+    fontSize: 14,
+    marginTop: 4,
+    marginBottom: 4,
+  },
+});
