@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import LottieView from 'lottie-react-native';
 import useFonts from '../hooks/useFonts';
+import { styles } from '../assets/styles';
 import "../global.css";
 
 export default function WelcomeScreen() {
@@ -56,21 +57,3 @@ export default function WelcomeScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  welcomeText: {
-    fontFamily: 'Mochiy', 
-    fontSize: 40,
-    fontWeight: 'bold',
-    color: 'white',
-    textAlign: 'center',
-    marginBottom: 20,
-    marginTop: 10,
-  },
-  liveVotesText: {
-    color: 'white',
-    fontSize: 16,
-    textDecorationLine: 'underline',
-    marginTop: 10,
-  },
-});

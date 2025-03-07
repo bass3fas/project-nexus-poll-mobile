@@ -46,6 +46,31 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
   },
+  welcomeText: {
+    fontFamily: 'Mochiy', 
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: 20,
+    marginTop: 10,
+  },
+  liveVotesText: {
+    color: 'white',
+    fontSize: 16,
+    textDecorationLine: 'underline',
+    marginTop: 10,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
+  },
+  loadingAnimation: {
+    width: 200,
+    height: 200,
+  },
 });
 
 export { styles };
