@@ -1,17 +1,18 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, StyleSheet } from "react-native";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { setDoc, doc } from "firebase/firestore";
-import { auth, db } from "../firebaseConfig";
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from "react-native";
 import { useRouter, Link } from "expo-router";
-import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
-import Lottie from 'lottie-react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import animation from '../assets/animations/success.json';
-import { styles } from '../assets/styles';
+import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import Lottie from "lottie-react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../store/store";
+import { signUp } from "../store/slices/authSlice";
+import animation from "../assets/animations/success.json";
+import { styles } from "../assets/styles";
 
 export default function SignUpScreen() {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,28 +25,17 @@ export default function SignUpScreen() {
       setErrorMessage("Please fill in all fields.");
       return;
     }
-
     try {
       setIsSubmitting(true);
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Save user details to Firestore in 'users' collection
-      await setDoc(doc(db, "users", user.uid), {
-        name,
-        email,
-        createdAt: new Date(),
-      });
-
+      const result = await dispatch(signUp({ email, password, name })).unwrap();
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
         Alert.alert("Success", "Account created!");
         router.push("/signin"); // Redirect to sign-in page
-      }, 2000); // Adjust the delay as needed
-    } catch (error) {
-      console.error("Error during sign-up:", error);
-      setErrorMessage((error as any).message);
+      }, 2000);
+    } catch (error: any) {
+      setErrorMessage(error.message || "Registration failed.");
     } finally {
       setIsSubmitting(false);
     }
@@ -55,7 +45,7 @@ export default function SignUpScreen() {
     <SafeAreaProvider>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.push('/')}>
+          <TouchableOpacity onPress={() => router.push("/")}>
             <MaterialIcons name="arrow-back" size={24} color="black" />
           </TouchableOpacity>
           <Text style={styles.headerText}>Sign Up</Text>
@@ -89,7 +79,7 @@ export default function SignUpScreen() {
             className="bg-purple-600 p-4 rounded-xl flex-row justify-center items-center shadow-md mt-4"
           >
             <Text className="text-white text-lg font-semibold">
-              {isSubmitting ? 'Creating...' : 'Sign Up'}
+              {isSubmitting ? "Creating..." : "Sign Up"}
             </Text>
           </TouchableOpacity>
           <Link href="/signin" asChild>
@@ -98,7 +88,6 @@ export default function SignUpScreen() {
             </TouchableOpacity>
           </Link>
         </ScrollView>
-
         {showSuccess && (
           <View style={styles.successOverlay}>
             <Lottie

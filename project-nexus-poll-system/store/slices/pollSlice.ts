@@ -17,7 +17,6 @@ interface Poll {
     totalVotes: number;
 }
 
-
 interface PollState {
     polls: Poll[];
     status: 'idle' | 'loading' | 'succeeded' | 'failed';
@@ -84,41 +83,6 @@ export const voteOnPoll = createAsyncThunk('polls/vote',
         return { pollId, optionId, userId };
     });
 
-const pollSlice = createSlice({
-    name: 'polls',
-    initialState,
-    reducers: {
-        setPolls: (state, action) => {
-            state.polls = action.payload;
-        }
-    },
-    extraReducers: (builder) => {
-        builder
-            .addCase(fetchPolls.pending, (state) => {
-                state.status = 'loading';
-            })
-            .addCase(fetchPolls.fulfilled, (state, action) => {
-                state.status = 'succeeded';
-                state.polls = action.payload;
-            })
-            .addCase(fetchPolls.rejected, (state, action) => {
-                state.status = 'failed';
-                state.error = action.error.message || 'Failed to fetch polls';
-            })
-            .addCase(voteOnPoll.fulfilled, (state, action) => {
-                const { pollId, optionId } = action.payload;
-                const poll = state.polls.find(p => p.id === pollId);
-                if (poll) {
-                    const option = poll.options[optionId];
-                    if (option) {
-                        option.votes += 1;
-                        poll.totalVotes += 1;
-                    }
-                }
-            });
-    }
-});
-
 export const createPoll = createAsyncThunk('polls/create',
     async ({ question, options, userId }: { question: string; options: string[]; userId: string }) => {
         const pollRef = doc(collection(db, 'polls'));
@@ -149,6 +113,55 @@ export const deletePoll = createAsyncThunk('polls/delete',
         await deleteDoc(pollRef);
         return pollId;
     });
+
+const pollSlice = createSlice({
+    name: 'polls',
+    initialState,
+    reducers: {
+        setPolls: (state, action) => {
+            state.polls = action.payload;
+        }
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchPolls.pending, (state) => {
+                state.status = 'loading';
+            })
+            .addCase(fetchPolls.fulfilled, (state, action) => {
+                state.status = 'succeeded';
+                state.polls = action.payload;
+            })
+            .addCase(fetchPolls.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.error.message || 'Failed to fetch polls';
+            })
+            .addCase(voteOnPoll.fulfilled, (state, action) => {
+                const { pollId, optionId, userId } = action.payload;
+                const poll = state.polls.find(p => p.id === pollId);
+
+                if (poll) {
+                    // Remove previous votes
+                    Object.values(poll.options).forEach(option => {
+                        if (option.voters.includes(userId)) {
+                            option.votes--;
+                            option.voters = option.voters.filter(uid => uid !== userId);
+                        }
+                    });
+
+                    // Add new vote
+                    poll.options[optionId].votes++;
+                    poll.options[optionId].voters.push(userId);
+                    poll.totalVotes = Object.values(poll.options).reduce((sum, opt) => sum + opt.votes, 0);
+                }
+            })
+            .addCase(createPoll.fulfilled, (state, action) => {
+                state.polls.push(action.payload);
+            })
+            .addCase(deletePoll.fulfilled, (state, action) => {
+                state.polls = state.polls.filter(poll => poll.id !== action.payload);
+            });
+    }
+});
 
 export const { setPolls } = pollSlice.actions;
 

@@ -1,15 +1,17 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from "react-native";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "../firebaseConfig";
 import { useRouter, Link } from "expo-router";
-import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
-import { styles } from '../assets/styles';
+import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../store/store";
+import { signIn } from "../store/slices/authSlice";
+import { styles } from "../assets/styles";
 
 export default function SignInScreen() {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
+  const authState = useSelector((state: RootState) => state.auth);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,25 +22,13 @@ export default function SignInScreen() {
       setErrorMessage("Please enter email and password.");
       return;
     }
-
     try {
       setIsSubmitting(true);
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Fetch user details from Firestore
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-
-      if (userDoc.exists()) {
-        console.log("User Data:", userDoc.data());
-        Alert.alert("Welcome", `Hello ${userDoc.data().name}!`);
-        router.push("/create"); // Redirect to create page
-      } else {
-        setErrorMessage("User data not found.");
-      }
-    } catch (error) {
-      console.error("Error during sign-in:", error);
-      setErrorMessage("Invalid email or password.");
+      const result = await dispatch(signIn({ email, password })).unwrap();
+      Alert.alert("Welcome", `Hello ${result.email}!`);
+      router.push("/create"); // Redirect to main app
+    } catch (error: any) {
+      setErrorMessage(error.message || "Invalid email or password.");
     } finally {
       setIsSubmitting(false);
     }
@@ -48,7 +38,7 @@ export default function SignInScreen() {
     <SafeAreaProvider>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.push('/')}>
+          <TouchableOpacity onPress={() => router.push("/")}>
             <MaterialIcons name="arrow-back" size={24} color="black" />
           </TouchableOpacity>
           <Text style={styles.headerText}>Sign In</Text>
@@ -76,7 +66,7 @@ export default function SignInScreen() {
             className="bg-purple-600 p-4 rounded-xl flex-row justify-center items-center shadow-md mt-4"
           >
             <Text className="text-white text-lg font-semibold">
-              {isSubmitting ? 'Signing In...' : 'Sign In'}
+              {isSubmitting ? "Signing In..." : "Sign In"}
             </Text>
           </TouchableOpacity>
           <Link href="/signup" asChild>

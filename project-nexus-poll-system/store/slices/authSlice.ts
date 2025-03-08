@@ -1,9 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { auth } from '../../firebaseConfig';
+import { auth, db } from '../../firebaseConfig';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
 
 interface AuthState {
-    user: null | { uid: string; email: string | null };
+    user: null | { uid: string; email: string | null; name?: string };
     status: 'idle' | 'loading' | 'succeeded' | 'failed';
     error: string | null;
 }
@@ -19,10 +20,15 @@ export const signIn = createAsyncThunk('auth/signIn', async ({ email, password }
     return { uid: userCredential.user.uid, email: userCredential.user.email };
 });
 
-export const signUp = createAsyncThunk('auth/signUp', async ({ email, password, name }: { email: string; password: string; name: string }) => {
+export const signUp = createAsyncThunk('auth/signUp', async ({ email, password, name }: { email: string; password: string; name: string }, { dispatch }) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    // You can store the name in Firestore here
-    return { uid: userCredential.user.uid, email: userCredential.user.email };
+    // Add user document
+    await setDoc(doc(db, 'users', userCredential.user.uid), {
+        name,
+        email,
+        createdAt: serverTimestamp()
+    });
+    return { uid: userCredential.user.uid, email, name };
 });
 
 export const signOutUser = createAsyncThunk('auth/signOut', async () => {
@@ -69,5 +75,6 @@ const authSlice = createSlice({
             });
     }
 });
+
 export const { setUser } = authSlice.actions;
 export default authSlice.reducer;
