@@ -1,13 +1,22 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { collection, getDocs, doc, updateDoc, increment, onSnapshot } from 'firebase/firestore';
+import { collection, getDocs, getDoc, doc, updateDoc, increment, onSnapshot, writeBatch, arrayRemove, arrayUnion, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
+import { RootState } from '../store';
 
 interface Poll {
     id: string;
     question: string;
-    options: Array<{ id: string; text: string; votes: number }>;
+    creatorId: string; // Add creator tracking
+    options: {
+        [optionId: string]: {
+            text: string;
+            votes: number;
+            voters: string[]; // Track user votes
+        };
+    };
     totalVotes: number;
 }
+
 
 interface PollState {
     polls: Poll[];
@@ -43,13 +52,36 @@ export const fetchPolls = createAsyncThunk('polls/fetchPolls', async (_, { dispa
 
 // Async Thunk: Handle voting
 export const voteOnPoll = createAsyncThunk('polls/vote',
-    async ({ pollId, optionId }: { pollId: string; optionId: string }) => {
+    async ({ pollId, optionId, userId }: { pollId: string; optionId: string; userId: string }, { getState }) => {
+        const state = getState() as RootState;
+        const poll = state.poll.polls.find(p => p.id === pollId);
+
+        if (!poll) throw new Error('Poll not found');
+
+        // Find existing vote
+        const previousVote = Object.entries(poll.options).find(([_, option]) =>
+            option.voters.includes(userId)
+        );
+
         const pollRef = doc(db, 'polls', pollId);
-        await updateDoc(pollRef, {
+        const batch = writeBatch(db);
+
+        if (previousVote) {
+            batch.update(pollRef, {
+                [`options.${previousVote[0]}.votes`]: increment(-1),
+                [`options.${previousVote[0]}.voters`]: arrayRemove(userId),
+                totalVotes: increment(-1)
+            });
+        }
+
+        batch.update(pollRef, {
             [`options.${optionId}.votes`]: increment(1),
-            totalVotes: increment(1)
+            [`options.${optionId}.voters`]: arrayUnion(userId),
+            totalVotes: increment(previousVote ? 0 : 1)
         });
-        return { pollId, optionId };
+
+        await batch.commit();
+        return { pollId, optionId, userId };
     });
 
 const pollSlice = createSlice({
@@ -77,7 +109,7 @@ const pollSlice = createSlice({
                 const { pollId, optionId } = action.payload;
                 const poll = state.polls.find(p => p.id === pollId);
                 if (poll) {
-                    const option = poll.options.find(opt => opt.id === optionId);
+                    const option = poll.options[optionId];
                     if (option) {
                         option.votes += 1;
                         poll.totalVotes += 1;
@@ -86,6 +118,37 @@ const pollSlice = createSlice({
             });
     }
 });
+
+export const createPoll = createAsyncThunk('polls/create',
+    async ({ question, options, userId }: { question: string; options: string[]; userId: string }) => {
+        const pollRef = doc(collection(db, 'polls'));
+
+        const pollData = {
+            question,
+            creatorId: userId,
+            totalVotes: 0,
+            options: options.reduce((acc, text, index) => {
+                acc[index] = { text, votes: 0, voters: [] };
+                return acc;
+            }, {} as Record<string, { text: string; votes: number; voters: string[] }>)
+        };
+
+        await setDoc(pollRef, pollData);
+        return { id: pollRef.id, ...pollData };
+    });
+
+export const deletePoll = createAsyncThunk('polls/delete',
+    async ({ pollId, userId }: { pollId: string; userId: string }) => {
+        const pollRef = doc(db, 'polls', pollId);
+        const pollDoc = await getDoc(pollRef);
+
+        if (pollDoc.data()?.creatorId !== userId) {
+            throw new Error('Unauthorized to delete this poll');
+        }
+
+        await deleteDoc(pollRef);
+        return pollId;
+    });
 
 export const { setPolls } = pollSlice.actions;
 

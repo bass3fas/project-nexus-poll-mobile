@@ -1,9 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
 import pollReducer from './slices/pollSlice';
+import authReducer from './slices/authSlice';
 
 export const store = configureStore({
     reducer: {
         poll: pollReducer,
+        auth: authReducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({ serializableCheck: false }),

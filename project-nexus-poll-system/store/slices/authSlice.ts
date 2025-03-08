@@ -38,8 +38,36 @@ const authSlice = createSlice({
         }
     },
     extraReducers: (builder) => {
-        // Handle all auth async thunks here
+        builder
+            .addCase(signIn.pending, (state) => {
+                state.status = 'loading';
+                state.error = null;
+            })
+            .addCase(signIn.fulfilled, (state, action) => {
+                state.status = 'succeeded';
+                state.user = action.payload;
+            })
+            .addCase(signIn.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.error.message || 'Authentication failed';
+            })
+            .addCase(signUp.pending, (state) => {
+                state.status = 'loading';
+                state.error = null;
+            })
+            .addCase(signUp.fulfilled, (state, action) => {
+                state.status = 'succeeded';
+                state.user = action.payload;
+            })
+            .addCase(signUp.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.error.message || 'Registration failed';
+            })
+            .addCase(signOutUser.fulfilled, (state) => {
+                state.user = null;
+                state.status = 'idle';
+            });
     }
 });
-
+export const { setUser } = authSlice.actions;
 export default authSlice.reducer;
