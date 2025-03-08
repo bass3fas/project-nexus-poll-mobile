@@ -3,8 +3,9 @@ import { View, TextInput, TouchableOpacity, Text, Alert, ScrollView } from 'reac
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { addDoc, collection } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../store/store';
+import { createPoll } from '../store/slices/pollSlice';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import Lottie from 'lottie-react-native';
@@ -16,6 +17,10 @@ const pollSchema = z.object({
 });
 
 export default function CreatePoll() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { user } = useSelector((state: RootState) => state.auth);
+  const { status } = useSelector((state: RootState) => state.poll);
+  
   const { control, handleSubmit, formState: { errors }, setValue, watch } = useForm({
     resolver: zodResolver(pollSchema),
     defaultValues: {
@@ -24,9 +29,8 @@ export default function CreatePoll() {
     }
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const options = watch('options');
 
   const handleAddOption = () => {
@@ -39,39 +43,26 @@ export default function CreatePoll() {
   };
 
   const onSubmit = async (data: { question: string; options: string[] }) => {
+    if (!user) {
+      setErrorMessage('You must be logged in to create a poll');
+      return;
+    }
+
     try {
-      setIsSubmitting(true);
-      
-      type PollOptions = {
-        [key: string]: {
-          text: string;
-          votes: number;
-        };
-      };
-
-      const pollData = {
+      await dispatch(createPoll({
         question: data.question,
-        options: data.options.reduce<PollOptions>((acc, text, index) => {
-          const optionId = `opt${index}`;
-          acc[optionId] = { text, votes: 0 };
-          return acc;
-        }, {}),
-        createdAt: new Date(),
-        totalVotes: 0
-      };
+        options: data.options,
+        userId: user.uid
+      })).unwrap();
 
-      await addDoc(collection(db, 'polls'), pollData);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2000);
       setValue('question', '');
       setValue('options', ['', '']);
-      
-      console.log('✅ Poll created successfully:', pollData);
+      setErrorMessage(null); // Clear error message on successful submission
     } catch (error) {
-      console.error('❌ Error creating poll:', error);
-      Alert.alert('Error', 'Failed to create poll');
-    } finally {
-      setIsSubmitting(false);
+      console.error('Poll creation error:', error);
+      setErrorMessage('Failed to create poll');
     }
   };
 
@@ -80,6 +71,11 @@ export default function CreatePoll() {
       <SafeAreaView className="flex-1 bg-gray-50 p-6">
         <ScrollView className="flex-1 p-4">
           <Text className="text-2xl font-bold text-black mb-6">Create a Poll</Text>
+          
+          {errorMessage && (
+            <Text className="text-red-500 mb-4">{errorMessage}</Text>
+          )}
+
           <Controller
             control={control}
             name="question"
@@ -87,7 +83,7 @@ export default function CreatePoll() {
               <View className="mb-6">
                 <TextInput
                   placeholder="Enter your poll question"
-                  className="bg-white p-4 rounded-xl text-md  border border-gray-300 shadow-md"
+                  className="bg-white p-4 rounded-xl text-md border border-gray-300 shadow-md"
                   onChangeText={field.onChange}
                   value={field.value}
                 />
@@ -133,7 +129,7 @@ export default function CreatePoll() {
 
           <TouchableOpacity
             onPress={handleAddOption}
-            className=" flex-row items-center justify-center bg-purple-400 mb-3 py-2 mt-3 rounded-lg shadow-md"
+            className="flex-row items-center justify-center bg-purple-400 mb-3 py-2 mt-3 rounded-lg shadow-md"
           >
             <MaterialIcons name="add-circle" size={20} color="white" />
             <Text className="text-white ml-2 font-medium">Add Option</Text>
@@ -141,25 +137,25 @@ export default function CreatePoll() {
 
           <TouchableOpacity
             onPress={handleSubmit(onSubmit)}
-            disabled={isSubmitting}
+            disabled={status === 'loading'}
             className="bg-purple-600 p-4 rounded-xl flex-row justify-center items-center shadow-md"
           >
             <Text className="text-white text-lg font-semibold">
-              {isSubmitting ? 'Creating...' : 'Create Poll'}
+              {status === 'loading' ? 'Creating...' : 'Create Poll'}
             </Text>
           </TouchableOpacity>
-        </ScrollView>
 
-        {showSuccess && (
-          <View className="absolute inset-0 justify-center items-center bg-black bg-opacity-50">
-            <Lottie
-              source={animation}
-              autoPlay
-              loop={false}
-              style={{ width: 200, height: 200 }}
-            />
-          </View>
-        )}
+          {showSuccess && (
+            <View className="absolute inset-0 justify-center items-center bg-black bg-opacity-50">
+              <Lottie
+                source={animation}
+                autoPlay
+                loop={false}
+                style={{ width: 200, height: 200 }}
+              />
+            </View>
+          )}
+        </ScrollView>
       </SafeAreaView>
     </SafeAreaProvider>
   );
