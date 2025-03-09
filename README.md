@@ -122,6 +122,16 @@ eas build --platform android --profile preview
 
 ---
 
+## 📀 Git Commit Workflow
+| Commit Type  | Purpose |
+|-------------|---------|
+| `feat:`     | New feature development |
+| `fix:`      | Bug fixes |
+| `style:`    | UI and styling improvements |
+| `docs:`     | Documentation updates |
+| `refactor:` | Code structure improvements |
+
+---
 ## 📢 Final Words
 
 Project Nexus demonstrates your expertise in building real-world, interactive applications using React Native, Redux, Firebase, and more. The project addresses challenges such as dependency conflicts, real-time data updates, vote editing, and dynamic UI improvements. By following the detailed setup and deployment steps, you now have a robust application ready for internal distribution and further enhancements.
