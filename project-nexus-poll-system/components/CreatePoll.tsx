@@ -10,6 +10,7 @@ import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import Lottie from 'lottie-react-native';
 import animation from '../assets/animations/success.json';
+import { useRouter } from 'expo-router';
 
 const pollSchema = z.object({
   question: z.string().min(5, "Question must be at least 5 characters"),
@@ -20,6 +21,7 @@ export default function CreatePoll() {
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.auth);
   const { status } = useSelector((state: RootState) => state.poll);
+  const router = useRouter();
   
   const { control, handleSubmit, formState: { errors }, setValue, watch } = useForm({
     resolver: zodResolver(pollSchema),
@@ -56,7 +58,10 @@ export default function CreatePoll() {
       })).unwrap();
 
       setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 2000);
+      setTimeout(() => {
+        setShowSuccess(false);
+        router.push('/vote'); // Go to the /vote tab route
+      }, 2000);
       setValue('question', '');
       setValue('options', ['', '']);
       setErrorMessage(null); // Clear error message on successful submission

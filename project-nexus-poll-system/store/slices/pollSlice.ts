@@ -186,9 +186,10 @@ const pollSlice = createSlice({
                 poll.options[optionId].voters.push(userId);
                 poll.totalVotes = Object.values(poll.options).reduce((sum, opt) => sum + opt.votes, 0);
             })
-            .addCase(createPoll.fulfilled, (state, action) => {
-                state.polls.push(action.payload);
-            })
+            //  comment out the line below to avoid adding a poll twice
+            // .addCase(createPoll.fulfilled, (state, action) => {
+            //     state.polls.push(action.payload);
+            // })
             .addCase(deletePoll.fulfilled, (state, action) => {
                 state.polls = state.polls.filter(poll => poll.id !== action.payload);
             });
