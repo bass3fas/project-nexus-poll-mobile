@@ -47,7 +47,7 @@ const initialState: PollState = {
 function normalizePollData(docData: any, docId: string): Poll {
     const { options = {}, ...rest } = docData;
     const normalizedOptions = Object.entries(options).reduce((acc, [key, optionValue]) => {
-        const { text = '', votes = 0, voters = [] } = optionValue || {};
+        const { text = '', votes = 0, voters = [] } = optionValue as { text?: string; votes?: number; voters?: string[] } || {};
         acc[key] = { text, votes, voters };
         return acc;
     }, {} as Poll['options']);
@@ -56,7 +56,7 @@ function normalizePollData(docData: any, docId: string): Poll {
         id: docId,
         ...rest,
         options: normalizedOptions,
-        totalVotes: rest.totalVotes || 0
+        totalVotes: Object.values(normalizedOptions).reduce((sum, option) => sum + option.votes, 0)
     } as Poll;
 }
 
@@ -98,16 +98,14 @@ export const voteOnPoll = createAsyncThunk(
         if (previousVote) {
             batch.update(pollRef, {
                 [`options.${previousVote[0]}.votes`]: increment(-1),
-                [`options.${previousVote[0]}.voters`]: arrayRemove(userId),
-                totalVotes: increment(-1)
+                [`options.${previousVote[0]}.voters`]: arrayRemove(userId)
             });
         }
 
         // Add new vote
         batch.update(pollRef, {
             [`options.${optionId}.votes`]: increment(1),
-            [`options.${optionId}.voters`]: arrayUnion(userId),
-            totalVotes: increment(previousVote ? 0 : 1)
+            [`options.${optionId}.voters`]: arrayUnion(userId)
         });
 
         await batch.commit();
@@ -184,9 +182,11 @@ const pollSlice = createSlice({
                 // Add new vote
                 poll.options[optionId].votes++;
                 poll.options[optionId].voters.push(userId);
+
+                // Recalculate total votes
                 poll.totalVotes = Object.values(poll.options).reduce((sum, opt) => sum + opt.votes, 0);
             })
-            //  comment out the line below to avoid adding a poll twice
+            // Comment out the line below to avoid adding a poll twice
             // .addCase(createPoll.fulfilled, (state, action) => {
             //     state.polls.push(action.payload);
             // })
