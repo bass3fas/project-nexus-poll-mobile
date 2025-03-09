@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Alert, ActivityIndicator, ScrollView } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store/store';
-import { fetchPolls, voteOnPoll } from '../store/slices/pollSlice';
+import { fetchPolls, voteOnPoll, deletePoll } from '../store/slices/pollSlice';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -51,6 +51,20 @@ const VoteScreen = () => {
     } catch (error) {
       Alert.alert('Error', 'Failed to submit vote. Please try again.');
       setSelectedPoll(null);
+    }
+  };
+
+  const handleDeletePoll = async (pollId: string) => {
+    if (!user) {
+      Alert.alert('Authentication Required', 'Please sign in to delete this poll');
+      return;
+    }
+
+    try {
+      await dispatch(deletePoll({ pollId, userId: user.uid })).unwrap();
+      Alert.alert('Success', 'Poll has been deleted!');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to delete poll. Please try again.');
     }
   };
 
@@ -123,6 +137,16 @@ const VoteScreen = () => {
                   <Text className="text-indigo-600 mr-2">View Results</Text>
                   <MaterialIcons name="arrow-forward" size={20} color="#4F46E5" />
                 </TouchableOpacity>
+
+                {user && user.uid === poll.creatorId && (
+                  <TouchableOpacity
+                    onPress={() => handleDeletePoll(poll.id)}
+                    className="flex-row items-center justify-end mt-3"
+                  >
+                    <Text className="text-red-600 mr-2">Delete Poll</Text>
+                    <MaterialIcons name="delete" size={20} color="#DC2626" />
+                  </TouchableOpacity>
+                )}
               </View>
             );
           })
