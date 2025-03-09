@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { auth, db } from '../../firebaseConfig';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, deleteUser } from 'firebase/auth';
+import { setDoc, doc, serverTimestamp, getDoc } from 'firebase/firestore';
 
 interface AuthState {
     user: null | { uid: string; email: string | null; name?: string };
@@ -17,10 +17,16 @@ const initialState: AuthState = {
 
 export const signIn = createAsyncThunk('auth/signIn', async ({ email, password }: { email: string; password: string }) => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return { uid: userCredential.user.uid, email: userCredential.user.email };
+    const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+    if (!userDoc.exists()) {
+        // If user data does not exist in Firestore, delete the user from Firebase Authentication
+        await deleteUser(userCredential.user);
+        throw new Error('User data not found. Please sign up again.');
+    }
+    return { uid: userCredential.user.uid, email: userCredential.user.email, name: userDoc.data()?.name };
 });
 
-export const signUp = createAsyncThunk('auth/signUp', async ({ email, password, name }: { email: string; password: string; name: string }, { dispatch }) => {
+export const signUp = createAsyncThunk('auth/signUp', async ({ email, password, name }: { email: string; password: string; name: string }) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     // Add user document
     await setDoc(doc(db, 'users', userCredential.user.uid), {
