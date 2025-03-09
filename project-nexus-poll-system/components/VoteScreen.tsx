@@ -103,6 +103,9 @@ const VoteScreen = () => {
                 <Text className="text-lg font-semibold text-gray-800 mb-2">
                   {poll.question}
                 </Text>
+                <Text className="text-sm text-gray-600 mb-2">
+                  Created by {poll.creatorName}
+                </Text>
 
                 <View className="space-y-3">
                   {Object.entries(poll.options).map(([optionId, option]) => (

@@ -19,6 +19,7 @@ interface Poll {
     id: string;
     question: string;
     creatorId: string;
+    creatorName: string; // Add creatorName to Poll interface
     options: {
         [optionId: string]: {
             text: string;
@@ -116,10 +117,14 @@ export const voteOnPoll = createAsyncThunk(
 export const createPoll = createAsyncThunk(
     'polls/create',
     async ({ question, options, userId }: { question: string; options: string[]; userId: string }) => {
+        const userDoc = await getDoc(doc(db, 'users', userId));
+        const userName = userDoc.data()?.name || 'Unknown';
+
         const pollRef = doc(collection(db, 'polls'));
         const pollData = {
             question,
             creatorId: userId,
+            creatorName: userName, // Add creatorName to poll data
             totalVotes: 0,
             options: options.reduce((acc, text, index) => {
                 acc[index] = { text, votes: 0, voters: [] };

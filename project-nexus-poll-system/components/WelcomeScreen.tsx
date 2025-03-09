@@ -41,12 +41,26 @@ export default function WelcomeScreen() {
           Nexus Poll
         </Text>
 
+        {/* Welcome Message */}
+        {user && (
+          <Text className="text-white text-center text-lg mb-4">
+            Welcome, {user.name}!
+          </Text>
+        )}
+
         {/* Action Buttons */}
         <View className="flex-row justify-center w-1/2 px-2 mb-10">
           {user ? (
-            <TouchableOpacity onPress={handleSignOut} className="border border-white rounded-full mx-2 py-3 px-6">
-              <Text className="text-white text-center text-lg">Sign Out</Text>
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity onPress={handleSignOut} className="border border-white rounded-full mx-2 py-3 px-6">
+                <Text className="text-white text-center text-lg">Sign Out</Text>
+              </TouchableOpacity>
+              <Link href="/create" asChild>
+                <TouchableOpacity className="bg-white rounded-full mx-2 py-3 px-6 shadow-lg">
+                  <Text className="text-purple-600 text-center text-lg font-semibold">Create Poll</Text>
+                </TouchableOpacity>
+              </Link>
+            </>
           ) : (
             <>
               <Link href="/signin" asChild>
