@@ -1,17 +1,29 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { collection, getDocs, getDoc, doc, updateDoc, increment, onSnapshot, writeBatch, arrayRemove, arrayUnion, setDoc, deleteDoc } from 'firebase/firestore';
+import {
+    collection,
+    getDocs,
+    getDoc,
+    doc,
+    writeBatch,
+    onSnapshot,
+    arrayRemove,
+    arrayUnion,
+    increment,
+    setDoc,
+    deleteDoc
+} from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import { RootState } from '../store';
 
 interface Poll {
     id: string;
     question: string;
-    creatorId: string; // Add creator tracking
+    creatorId: string;
     options: {
         [optionId: string]: {
             text: string;
             votes: number;
-            voters: string[]; // Track user votes
+            voters: string[];
         };
     };
     totalVotes: number;
@@ -29,20 +41,37 @@ const initialState: PollState = {
     error: null
 };
 
+/**
+ * Helper function to ensure each option's voters array is never undefined.
+ */
+function normalizePollData(docData: any, docId: string): Poll {
+    const { options = {}, ...rest } = docData;
+    const normalizedOptions = Object.entries(options).reduce((acc, [key, optionValue]) => {
+        const { text = '', votes = 0, voters = [] } = optionValue || {};
+        acc[key] = { text, votes, voters };
+        return acc;
+    }, {} as Poll['options']);
+
+    return {
+        id: docId,
+        ...rest,
+        options: normalizedOptions,
+        totalVotes: rest.totalVotes || 0
+    } as Poll;
+}
+
 // Async Thunk: Fetch polls from Firestore
 export const fetchPolls = createAsyncThunk('polls/fetchPolls', async (_, { dispatch }) => {
     const querySnapshot = await getDocs(collection(db, 'polls'));
-    const polls = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-    })) as Poll[];
+    const polls = querySnapshot.docs.map(doc =>
+        normalizePollData(doc.data(), doc.id)
+    );
 
     // Set up real-time listener
     onSnapshot(collection(db, 'polls'), (snapshot) => {
-        const updatedPolls = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        })) as Poll[];
+        const updatedPolls = snapshot.docs.map(docSnap =>
+            normalizePollData(docSnap.data(), docSnap.id)
+        );
         dispatch(setPolls(updatedPolls));
     });
 
@@ -50,11 +79,11 @@ export const fetchPolls = createAsyncThunk('polls/fetchPolls', async (_, { dispa
 });
 
 // Async Thunk: Handle voting
-export const voteOnPoll = createAsyncThunk('polls/vote',
+export const voteOnPoll = createAsyncThunk(
+    'polls/vote',
     async ({ pollId, optionId, userId }: { pollId: string; optionId: string; userId: string }, { getState }) => {
         const state = getState() as RootState;
         const poll = state.poll.polls.find(p => p.id === pollId);
-
         if (!poll) throw new Error('Poll not found');
 
         // Find existing vote
@@ -65,6 +94,7 @@ export const voteOnPoll = createAsyncThunk('polls/vote',
         const pollRef = doc(db, 'polls', pollId);
         const batch = writeBatch(db);
 
+        // Remove previous votes if found
         if (previousVote) {
             batch.update(pollRef, {
                 [`options.${previousVote[0]}.votes`]: increment(-1),
@@ -73,6 +103,7 @@ export const voteOnPoll = createAsyncThunk('polls/vote',
             });
         }
 
+        // Add new vote
         batch.update(pollRef, {
             [`options.${optionId}.votes`]: increment(1),
             [`options.${optionId}.voters`]: arrayUnion(userId),
@@ -81,12 +112,13 @@ export const voteOnPoll = createAsyncThunk('polls/vote',
 
         await batch.commit();
         return { pollId, optionId, userId };
-    });
+    }
+);
 
-export const createPoll = createAsyncThunk('polls/create',
+export const createPoll = createAsyncThunk(
+    'polls/create',
     async ({ question, options, userId }: { question: string; options: string[]; userId: string }) => {
         const pollRef = doc(collection(db, 'polls'));
-
         const pollData = {
             question,
             creatorId: userId,
@@ -99,20 +131,21 @@ export const createPoll = createAsyncThunk('polls/create',
 
         await setDoc(pollRef, pollData);
         return { id: pollRef.id, ...pollData };
-    });
+    }
+);
 
-export const deletePoll = createAsyncThunk('polls/delete',
+export const deletePoll = createAsyncThunk(
+    'polls/delete',
     async ({ pollId, userId }: { pollId: string; userId: string }) => {
         const pollRef = doc(db, 'polls', pollId);
         const pollDoc = await getDoc(pollRef);
-
         if (pollDoc.data()?.creatorId !== userId) {
             throw new Error('Unauthorized to delete this poll');
         }
-
         await deleteDoc(pollRef);
         return pollId;
-    });
+    }
+);
 
 const pollSlice = createSlice({
     name: 'polls',
@@ -138,21 +171,20 @@ const pollSlice = createSlice({
             .addCase(voteOnPoll.fulfilled, (state, action) => {
                 const { pollId, optionId, userId } = action.payload;
                 const poll = state.polls.find(p => p.id === pollId);
+                if (!poll) return;
 
-                if (poll) {
-                    // Remove previous votes
-                    Object.values(poll.options).forEach(option => {
-                        if (option.voters.includes(userId)) {
-                            option.votes--;
-                            option.voters = option.voters.filter(uid => uid !== userId);
-                        }
-                    });
+                // Remove previous votes
+                Object.values(poll.options).forEach(option => {
+                    if (option.voters.includes(userId)) {
+                        option.votes--;
+                        option.voters = option.voters.filter(uid => uid !== userId);
+                    }
+                });
 
-                    // Add new vote
-                    poll.options[optionId].votes++;
-                    poll.options[optionId].voters.push(userId);
-                    poll.totalVotes = Object.values(poll.options).reduce((sum, opt) => sum + opt.votes, 0);
-                }
+                // Add new vote
+                poll.options[optionId].votes++;
+                poll.options[optionId].voters.push(userId);
+                poll.totalVotes = Object.values(poll.options).reduce((sum, opt) => sum + opt.votes, 0);
             })
             .addCase(createPoll.fulfilled, (state, action) => {
                 state.polls.push(action.payload);
@@ -164,5 +196,4 @@ const pollSlice = createSlice({
 });
 
 export const { setPolls } = pollSlice.actions;
-
 export default pollSlice.reducer;
