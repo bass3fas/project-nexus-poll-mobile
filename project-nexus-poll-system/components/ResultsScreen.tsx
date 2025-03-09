@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator, ScrollView } from 'react-native';
-import { VictoryPie } from 'victory';
+import { View, Text, TouchableOpacity, Alert, ActivityIndicator, ScrollView, Dimensions } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store/store';
 import { fetchPolls, voteOnPoll } from '../store/slices/pollSlice';
 import { useRoute } from '@react-navigation/native';
+import { PieChart } from 'react-native-chart-kit'; // Replace VictoryPie
 
 const ResultsScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -13,6 +13,7 @@ const ResultsScreen = () => {
   const route = useRoute<{ key: string; name: string; params: { pollId: string } }>();
   const pollId = route.params?.pollId;
   const [selectedPoll, setSelectedPoll] = useState<string | null>(pollId || null);
+  const screenWidth = Dimensions.get('window').width;
 
   useEffect(() => {
     dispatch(fetchPolls());
@@ -59,6 +60,21 @@ const ResultsScreen = () => {
     )?.[0];
   };
 
+  const getChartData = (pollId: string) => {
+    const poll = polls.find(p => p.id === pollId);
+    if (!poll) return [];
+    
+    return Object.values(poll.options)
+      .filter(option => option.votes > 0)
+      .map((option, index) => ({
+        name: option.text,
+        population: option.votes,
+        color: `rgba(${index * 50}, ${index * 100}, 200, 1)`,
+        legendFontColor: '#7F7F7F',
+        legendFontSize: 15
+      }));
+  };
+
   if (status === 'loading') {
     return (
       <View className="flex-1 justify-center items-center">
@@ -83,40 +99,60 @@ const ResultsScreen = () => {
 
             {selectedPoll === poll.id && (
               <View className="mt-4">
-                <VictoryPie
-                  data={Object.values(poll.options).filter(option => option.votes > 0).map(option => ({
-                    x: `${option.text}\n${calculatePercentage(option.votes, poll.totalVotes)}%`,
-                    y: option.votes,
-                  }))}
-                  colorScale={["#F87171", "#60A5FA", "#FBBF24", "#34D399", "#F59E0B"]}
-                  width={350}
-                  height={350}
-                  padAngle={2}
-                  innerRadius={80}
-                  labelRadius={120}
-                  style={{
-                    labels: { fill: 'black', fontSize: 14, fontWeight: 'bold', textAnchor: 'middle' },
-                  }}
-                />
+                {poll.totalVotes > 0 ? (
+                  <>
+                    <PieChart
+                      data={getChartData(poll.id)}
+                      width={screenWidth - 32}
+                      height={220}
+                      chartConfig={{
+                        color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                      }}
+                      accessor="population"
+                      backgroundColor="transparent"
+                      paddingLeft="15"
+                      absolute
+                    />
 
-                <View className="space-y-2 mt-4">
-                  {Object.entries(poll.options).map(([optionId, option]) => (
-                    <TouchableOpacity
-                      key={optionId}
-                      onPress={() => handleVote(poll.id, optionId)}
-                      disabled={status !== 'idle' && status !== 'succeeded' && status !== 'failed'}
-                      className={`bg-indigo-100 p-3 rounded-lg shadow ${selectedOption === optionId ? 'border-2 border-indigo-600' : ''}`}
-                    >
-                      <View className="flex-row justify-between">
-                        <Text className="text-indigo-700 font-medium">{option.text}</Text>
-                        <Text className="text-indigo-700">{option.votes} votes ({calculatePercentage(option.votes, poll.totalVotes)}%)</Text>
-                      </View>
-                      <View className="w-full bg-indigo-300 h-2 rounded-full mt-2 overflow-hidden">
-                        <View style={{ width: `${parseFloat(calculatePercentage(option.votes, poll.totalVotes))}%` }} className="h-full bg-indigo-600" />
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+                    <View className="space-y-2 mt-4">
+                      {Object.entries(poll.options).map(([optionId, option]) => {
+                        const percentage = calculatePercentage(option.votes, poll.totalVotes);
+                        
+                        return (
+                          <TouchableOpacity
+                            key={optionId}
+                            onPress={() => handleVote(poll.id, optionId)}
+                            disabled={status !== 'idle' && status !== 'succeeded' && status !== 'failed'}
+                            className={`p-3 rounded-lg border-2 ${
+                              selectedOption === optionId 
+                                ? 'border-indigo-600 bg-indigo-50' 
+                                : 'border-gray-200 bg-white'
+                            }`}
+                          >
+                            <View className="flex-row justify-between items-center">
+                              <Text className="text-gray-800 font-medium">
+                                {option.text}
+                              </Text>
+                              <Text className="text-gray-500">
+                                {option.votes} ({percentage}%)
+                              </Text>
+                            </View>
+                            <View className="w-full bg-gray-200 h-2 rounded-full mt-2 overflow-hidden">
+                              <View 
+                              style={{ width: `${percentage}%` as `${number}%` }} 
+                              className="h-full bg-indigo-600" 
+                              />
+                            </View>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </>
+                ) : (
+                  <View className="h-40 items-center justify-center">
+                    <Text className="text-gray-500">No votes yet</Text>
+                  </View>
+                )}
               </View>
             )}
           </View>
