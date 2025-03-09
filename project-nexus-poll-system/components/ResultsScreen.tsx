@@ -43,7 +43,7 @@ const ResultsScreen = () => {
     try {
       await dispatch(voteOnPoll({ pollId, optionId, userId: user.uid })).unwrap();
       Alert.alert('Success', 'Your vote has been recorded!');
-      dispatch(fetchPolls());
+      // dispatch(fetchPolls()) 
     } catch (error) {
       Alert.alert('Error', 'Failed to submit vote. Please try again.');
     }
