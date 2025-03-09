@@ -1,216 +1,129 @@
 # Project Nexus - Online Poll System
 
 ## 📌 Overview
-Project Nexus is an advanced mobile application designed to facilitate interactive online polling with real-time voting and result updates. The app is built using **React Native (Expo)** with robust state management, animations, and data validation.
+
+Project Nexus is an advanced mobile application designed to facilitate interactive online polling with real-time voting and result updates. Built with **React Native (Expo)**, the project demonstrates robust state management using **Redux Toolkit**, real-time data with **Firebase Firestore**, smooth animations with **Lottie**, and input validation with **Zod**. The UI is styled using **NativeWind** (a Tailwind CSS solution for React Native).
+
+---
 
 ## 🎯 Project Goals
-- **API Integration**: Fetch and display poll questions and real-time results from an API.
-- **State Management**: Utilize Redux Toolkit for efficient data flow.
-- **Real-time Updates**: Enable live result visualization with Firebase Firestore.
-- **User-Friendly Interface**: Smooth UI with animations and dynamic styling.
-- **Data Validation**: Use Zod to ensure input data integrity.
+
+- **API Integration:** Connect to Firebase Firestore to fetch and update poll data in real time.
+- **State Management:** Use Redux Toolkit to manage authentication and poll data efficiently.
+- **Real-Time Updates:** Enable live poll result visualization through Firestore listeners.
+- **User-Friendly Interface:** Offer a smooth, responsive UI with engaging animations and dynamic styling.
+- **Data Validation:** Use Zod to enforce poll input integrity.
+- **User Authentication:** Allow users to sign up, sign in, and manage their votes. Each user can vote for only one option per poll and update their vote as needed.
+
+---
 
 ## 🛠 Technologies Used
-- **React Native (Expo)**: Cross-platform mobile development.
-- **Redux Toolkit**: State management.
-- **TypeScript**: Type safety.
-- **Victory Native**: Charts for poll visualization.
-- **NativeWind**: Tailwind CSS-based styling.
-- **Firebase Firestore**: Real-time data storage.
-- **Lottie**: Animations for enhanced UI.
-- **Zod**: Schema validation for poll inputs.
 
-## 📋 Setup & Implementation Steps
+- **React Native (Expo):** Cross-platform mobile development.
+- **Redux Toolkit:** State management for polls and authentication.
+- **TypeScript:** Ensures type safety.
+- **NativeWind:** Tailwind CSS-based styling for React Native.
+- **Firebase Firestore & Authentication:** Real-time database and user management.
+- **Lottie (lottie-react-native):** Animations for enhanced UI feedback.
+- **Zod:** Schema validation for poll inputs.
+- **Victory Native / react-native-chart-kit:** Data visualization for poll results.
+- **EAS Build:** Cloud build service for native apps.
+- **.npmrc (legacy-peer-deps):** Used to resolve dependency conflicts during installation.
 
-### **1. Install Prerequisites**
-Ensure you have Node.js and Expo CLI installed:
-```bash
-npm install -g expo-cli
-```
+---
 
-### **2. Initialize the Project**
-```bash
-npx create-expo-app@latest project-nexus-poll-system --template with-router
-cd project-nexus-poll-system
-```
+## 📋 Project Structure
 
-### **3. Install Dependencies**
-```bash
-npm install nativewind tailwindcss@^3.4.17
-npm install react-redux @reduxjs/toolkit
-npm install victory-native react-native-svg
-npm install expo-constants firebase
-npm install lottie-react-native lottie-ios
-npm install zod
-```
+### **App & Layout**
 
-### **4. Set Up Tailwind**
-Run:
-```bash
-npx tailwindcss init
-```
-Modify `tailwind.config.js`:
-```ts
-module.exports = {
-  content: ["./app/**/*.{js,jsx,ts,tsx}"],
-  presets: [require("nativewind/preset")],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-};
-```
-Create `global.css`:
-```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-```
+- **\`app/_layout.tsx\`:**
+  - Wraps the entire app with the Redux Provider.
+  - Uses a **LinearGradient** background.
+  - Listens to authentication state changes via Firebase and dispatches the \`setUser\` action.
+  - Defines navigation routes: Welcome, Sign In, Sign Up, and Main App Tabs.
 
-Modify `babel.config.js`:
-```js
-module.exports = function (api) {
-  api.cache(true);
-  return {
-    presets: [
-      ["babel-preset-expo", { jsxImportSource: "nativewind" }],
-      "nativewind/babel",
-    ],
-  };
-};
-```
+- **\`app/index.tsx\` (WelcomeScreen):**
+  - Displays a welcome message with engaging Lottie animations.
+  - Provides navigation links to Sign In, Sign Up, and other key areas.
 
-### **5. Set Up Redux Store**
-Create `store.ts`:
-```ts
-import { configureStore } from '@reduxjs/toolkit';
-import pollReducer from './slices/pollSlice';
+- **\`app/signin.tsx\` (SignInScreen):**
+  - Implements the sign-in form.
+  - Dispatches the Redux async thunk for signing in.
+  - Routes the user to the main app upon successful sign-in.
 
-export const store = configureStore({
-  reducer: {
-    poll: pollReducer,
-  },
-});
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
-```
+- **\`app/signup.tsx\` (SignUpScreen):**
+  - Implements the sign-up form with input validation.
+  - Dispatches the Redux async thunk for registration.
+  - Saves user details in Firestore under the \`users\` collection.
+  - Displays a Lottie success animation upon account creation.
 
-### **6. Create a Redux Slice for Poll Management**
-Create `slices/pollSlice.ts`:
-```ts
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+- **\`(tabs)/_layout.tsx\`:**
+  - Manages tab navigation for the main app screens.
+- **\`(tabs)/create.tsx\` (CreatePoll):**
+  - Provides a form for creating polls with Zod validation.
+  - Dispatches the Redux async thunk for poll creation.
+- **\`(tabs)/vote.tsx\` (VoteScreen):**
+  - Allows authenticated users to vote.
+  - Ensures only one vote per poll, allowing vote editing.
+  - Includes UI elements for deleting polls (for creators).
+- **\`(tabs)/results.tsx\` (ResultsScreen):**
+  - Displays real-time poll results using charts (VictoryPie or PieChart).
+  - Filters out options with 0% votes in the chart.
+  - Highlights the option the current user voted for.
+  - Shows vote counts and percentages for each option.
 
-type Poll = {
-  id: string;
-  question: string;
-  options: { id: string; text: string; votes: number }[];
-};
+### **Other Components**
 
-type PollState = {
-  polls: Poll[];
-};
+- **\`components/AuthProvider.tsx\`:**
+  - Provides an authentication context.
+  - Listens to Firebase auth state and dispatches \`setUser\`.
+- **\`components/LoadingScreen.tsx\`:**
+  - A simple loading indicator component.
 
-const initialState: PollState = {
-  polls: [],
-};
+### **Hooks**
 
-const pollSlice = createSlice({
-  name: 'poll',
-  initialState,
-  reducers: {
-    addPoll: (state, action: PayloadAction<Poll>) => {
-      state.polls.push(action.payload);
-    },
-    votePoll: (state, action: PayloadAction<{ pollId: string; optionId: string }>) => {
-      const poll = state.polls.find((p) => p.id === action.payload.pollId);
-      if (poll) {
-        const option = poll.options.find((o) => o.id === action.payload.optionId);
-        if (option) {
-          option.votes += 1;
-        }
-      }
-    },
-  },
-});
+- **\`hooks/useFonts.ts\`:**
+  - Loads custom fonts (e.g., Modak and Mochiy) for the app.
 
-export const { addPoll, votePoll } = pollSlice.actions;
-export default pollSlice.reducer;
-```
+### **Store & Slices**
 
-### **7. Firebase Setup**
-1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com).
-2. Enable Firestore Database.
-3. Add Firebase configuration to `.env`:
-```ini
-EXPO_PUBLIC_FIREBASE_API_KEY=your_key
-EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your_domain
-EXPO_PUBLIC_FIREBASE_PROJECT_ID=your_id
-```
-4. Initialize Firebase (`firebaseConfig.ts`):
-```ts
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+- **\`store/store.ts\`:**
+  - Configures Redux with \`poll\` and \`auth\` slices.
+- **\`store/slices/authSlice.ts\`:**
+  - Handles user authentication using Firebase Auth.
+  - On sign-in, retrieves user data from Firestore; if missing, deletes the Auth user.
+- **\`store/slices/pollSlice.ts\`:**
+  - Manages poll data: fetching, voting, creating, and deleting polls.
+  - Includes a helper to normalize poll data from Firestore.
+  - Implements logic to ensure a user can only vote once per poll, and updating their vote removes the previous vote.
 
-const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-};
+---
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
-export const auth = getAuth(app);
-```
+## 🚀 Deployment Steps with EAS Build
 
-### **8. Implement Poll Features**
-- **Poll Creation**: Form with input validation using Zod.
-- **Voting Screen**: Allow users to vote on active polls.
-- **Live Result Screen**: Display real-time poll results with Victory charts.
+### **1. Install EAS CLI**
 
-### **9. Use Charts for Visualization**
-Example using `VictoryPie`:
-```tsx
-import { VictoryPie } from 'victory-native';
+\`\`\`bash
+npm install -g eas-cli
+\`\`\`
 
-<VictoryPie
-  data={poll.options.map(option => ({ x: option.text, y: option.votes }))}
-  colorScale={["#f87171", "#60a5fa", "#fbbf24"]}
-/>
-```
+### **2. Configure Project**
 
-### **10. Run the App**
-```bash
-npx expo start
-```
+\`\`\`bash
+eas build:configure
+\`\`\`
+Choose **Android** when prompted.
 
-## 📀 Git Commit Workflow
-| Commit Type  | Purpose |
-|-------------|---------|
-| `feat:`     | New feature development |
-| `fix:`      | Bug fixes |
-| `style:`    | UI and styling improvements |
-| `docs:`     | Documentation updates |
-| `refactor:` | Code structure improvements |
+### **3. Build APK**
 
-Example commits:
-```bash
-git commit -m "feat: add poll creation feature"
-git commit -m "fix: resolve Redux state update issue"
-```
+\`\`\`bash
+eas build --platform android --profile preview
+\`\`\`
 
-## 📢 Deployment
-For testing:
-```bash
-expo build:android  # Android APK
-expo build:ios      # iOS App
-```
+---
 
-## 📊 Evaluation Criteria
-- **Functionality**: Create polls, vote, and see live results.
-- **Code Quality**: Modular, clean, maintainable.
-- **User Experience**: Smooth UI with animations.
+## 📢 Final Words
 
-## 🎯 Final Words
-This project demonstrates expertise in **React Native, Redux, Firebase, and real-time applications**. Build something amazing! 🚀
+Project Nexus demonstrates your expertise in building real-world, interactive applications using React Native, Redux, Firebase, and more. The project addresses challenges such as dependency conflicts, real-time data updates, vote editing, and dynamic UI improvements. By following the detailed setup and deployment steps, you now have a robust application ready for internal distribution and further enhancements.
 
+Happy coding! 🚀
