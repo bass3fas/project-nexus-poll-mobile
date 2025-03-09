@@ -25,7 +25,7 @@ export default function SignInScreen() {
     try {
       setIsSubmitting(true);
       const result = await dispatch(signIn({ email, password })).unwrap();
-      Alert.alert("Welcome", `Hello ${result.email}!`);
+      //Alert.alert("Welcome", `Hello ${result.email}!`);
       router.push("/"); // Redirect to main app
     } catch (error: any) {
       setErrorMessage(error.message || "Invalid email or password.");

@@ -31,7 +31,7 @@ export default function SignUpScreen() {
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
-        Alert.alert("Success", "Account created!");
+        //Alert.alert("Success", "Account created!");
         router.push("/signin"); // Redirect to sign-in page
       }, 2000);
     } catch (error: any) {
